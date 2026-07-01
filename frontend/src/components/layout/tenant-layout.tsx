@@ -1,5 +1,7 @@
 import {
   BookUser,
+  Building2,
+  Handshake,
   Inbox,
   KanbanSquare,
   LayoutDashboard,
@@ -40,6 +42,8 @@ export function TenantLayout() {
       title: "CRM",
       items: [
         item("Directory", BookUser, "/customers", "customers:read"),
+        item("Clients", Building2, "/clients", "clients:read"),
+        item("Partners", Handshake, "/partners", "partners:read"),
         item("Communications", Inbox, "/communications", "communications:read"),
         item("Pipeline", KanbanSquare, "/pipeline", "deals:read"),
         item("Tasks", ListTodo, "/tasks", "tasks:read"),

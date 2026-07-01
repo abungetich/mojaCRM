@@ -11,6 +11,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Client struct {
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	ClientType      string             `json:"client_type"`
+	DisplayName     string             `json:"display_name"`
+	FirstName       string             `json:"first_name"`
+	MiddleName      string             `json:"middle_name"`
+	LastName        string             `json:"last_name"`
+	IDType          string             `json:"id_type"`
+	IDNumber        string             `json:"id_number"`
+	CompanyName     string             `json:"company_name"`
+	RegNumber       string             `json:"reg_number"`
+	KraPin          string             `json:"kra_pin"`
+	Email           string             `json:"email"`
+	Phone           string             `json:"phone"`
+	Address         string             `json:"address"`
+	Notes           string             `json:"notes"`
+	CompanyClientID pgtype.UUID        `json:"company_client_id"`
+	Code            string             `json:"code"`
+	CreatedByName   string             `json:"created_by_name"`
+	CreatedAt       time.Time          `json:"created_at"`
+	UpdatedAt       time.Time          `json:"updated_at"`
+	DeletedAt       pgtype.Timestamptz `json:"deleted_at"`
+	DeletedByName   string             `json:"deleted_by_name"`
+	DeleteReason    string             `json:"delete_reason"`
+}
+
 type Contact struct {
 	ID                      uuid.UUID `json:"id"`
 	TenantID                uuid.UUID `json:"tenant_id"`
@@ -99,6 +126,105 @@ type CustomerNote struct {
 type CustomerTag struct {
 	CustomerID uuid.UUID `json:"customer_id"`
 	TagID      uuid.UUID `json:"tag_id"`
+}
+
+type Partner struct {
+	ID                  uuid.UUID          `json:"id"`
+	TenantID            uuid.UUID          `json:"tenant_id"`
+	Name                string             `json:"name"`
+	LogoUrl             string             `json:"logo_url"`
+	Industry            string             `json:"industry"`
+	PartnershipModel    string             `json:"partnership_model"`
+	Status              string             `json:"status"`
+	Address             string             `json:"address"`
+	Town                string             `json:"town"`
+	Country             string             `json:"country"`
+	ContactName         string             `json:"contact_name"`
+	ContactTitle        string             `json:"contact_title"`
+	WorkEmail           string             `json:"work_email"`
+	PhoneMobile         string             `json:"phone_mobile"`
+	PhoneOffice         string             `json:"phone_office"`
+	Notes               string             `json:"notes"`
+	Code                string             `json:"code"`
+	Type                string             `json:"type"`
+	SlaDays             int32              `json:"sla_days"`
+	DefaultTemplateID   pgtype.UUID        `json:"default_template_id"`
+	MileageRatePerKm    int64              `json:"mileage_rate_per_km"`
+	CompMinCount        int32              `json:"comp_min_count"`
+	CompMaxAgeMonths    int32              `json:"comp_max_age_months"`
+	CompMaxRadiusKm     int32              `json:"comp_max_radius_km"`
+	CompMaxVariancePct  int32              `json:"comp_max_variance_pct"`
+	CompActualSalesOnly bool               `json:"comp_actual_sales_only"`
+	CreatedByName       string             `json:"created_by_name"`
+	CreatedAt           time.Time          `json:"created_at"`
+	UpdatedAt           time.Time          `json:"updated_at"`
+	DeletedAt           pgtype.Timestamptz `json:"deleted_at"`
+	DeletedByName       string             `json:"deleted_by_name"`
+	DeleteReason        string             `json:"delete_reason"`
+}
+
+type PartnerAppendixTemplate struct {
+	ID            uuid.UUID `json:"id"`
+	TenantID      uuid.UUID `json:"tenant_id"`
+	PartnerID     uuid.UUID `json:"partner_id"`
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	Fields        []byte    `json:"fields"`
+	SortOrder     int32     `json:"sort_order"`
+	Active        bool      `json:"active"`
+	CreatedByName string    `json:"created_by_name"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+type PartnerBranch struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	PartnerID     uuid.UUID          `json:"partner_id"`
+	Name          string             `json:"name"`
+	Town          string             `json:"town"`
+	Phone         string             `json:"phone"`
+	Email         string             `json:"email"`
+	CreatedByName string             `json:"created_by_name"`
+	CreatedAt     time.Time          `json:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+	DeletedByName string             `json:"deleted_by_name"`
+	DeleteReason  string             `json:"delete_reason"`
+}
+
+type PartnerContact struct {
+	ID               uuid.UUID          `json:"id"`
+	TenantID         uuid.UUID          `json:"tenant_id"`
+	PartnerID        uuid.UUID          `json:"partner_id"`
+	FirstName        string             `json:"first_name"`
+	MiddleName       string             `json:"middle_name"`
+	LastName         string             `json:"last_name"`
+	Title            string             `json:"title"`
+	Email            string             `json:"email"`
+	Phone            string             `json:"phone"`
+	Whatsapp         string             `json:"whatsapp"`
+	PreferredChannel string             `json:"preferred_channel"`
+	IsActive         bool               `json:"is_active"`
+	InactiveReason   string             `json:"inactive_reason"`
+	CreatedByName    string             `json:"created_by_name"`
+	CreatedAt        time.Time          `json:"created_at"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	DeletedAt        pgtype.Timestamptz `json:"deleted_at"`
+	DeletedByName    string             `json:"deleted_by_name"`
+	DeleteReason     string             `json:"delete_reason"`
+}
+
+type PartnerRequirement struct {
+	ID            uuid.UUID `json:"id"`
+	TenantID      uuid.UUID `json:"tenant_id"`
+	PartnerID     uuid.UUID `json:"partner_id"`
+	Label         string    `json:"label"`
+	Detail        string    `json:"detail"`
+	Kind          string    `json:"kind"`
+	SortOrder     int32     `json:"sort_order"`
+	Active        bool      `json:"active"`
+	CreatedByName string    `json:"created_by_name"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 type Permission struct {

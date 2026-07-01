@@ -1,6 +1,8 @@
 import { apiClient } from "@/lib/api-client"
 import type {
   Branding,
+  Client,
+  ClientInput,
   Communication,
   CommunicationInput,
   Contact,
@@ -9,6 +11,16 @@ import type {
   CustomerInput,
   CustomerNote,
   Paginated,
+  Partner,
+  PartnerAppendixTemplate,
+  PartnerAppendixTemplateInput,
+  PartnerBranch,
+  PartnerBranchInput,
+  PartnerContact,
+  PartnerContactInput,
+  PartnerInput,
+  PartnerRequirement,
+  PartnerRequirementInput,
   Permission,
   Role,
   Session,
@@ -119,6 +131,93 @@ export const customers = {
       apiClient.get<Communication[]>(`/customers/${customerId}/communications`).then((r) => r.data),
     create: (customerId: string, input: CommunicationInput) =>
       apiClient.post<Communication>(`/customers/${customerId}/communications`, input).then((r) => r.data),
+  },
+}
+
+export interface ClientListParams {
+  page?: number
+  page_size?: number
+  client_type?: string
+  q?: string
+}
+
+export const clients = {
+  list: (params: ClientListParams) =>
+    apiClient.get<Paginated<Client>>("/clients", { params }).then((r) => r.data),
+  get: (id: string) => apiClient.get<Client>(`/clients/${id}`).then((r) => r.data),
+  create: (input: ClientInput) => apiClient.post<Client>("/clients", input).then((r) => r.data),
+  update: (id: string, input: ClientInput) =>
+    apiClient.patch<Client>(`/clients/${id}`, input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/clients/${id}`),
+}
+
+export interface PartnerListParams {
+  page?: number
+  page_size?: number
+  status?: string
+  type?: string
+  q?: string
+}
+
+export const partners = {
+  list: (params: PartnerListParams) =>
+    apiClient.get<Paginated<Partner>>("/partners", { params }).then((r) => r.data),
+  get: (id: string) => apiClient.get<Partner>(`/partners/${id}`).then((r) => r.data),
+  create: (input: PartnerInput) => apiClient.post<Partner>("/partners", input).then((r) => r.data),
+  update: (id: string, input: PartnerInput) =>
+    apiClient.patch<Partner>(`/partners/${id}`, input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/partners/${id}`),
+
+  branches: {
+    list: (partnerId: string) =>
+      apiClient.get<PartnerBranch[]>(`/partners/${partnerId}/branches`).then((r) => r.data),
+    create: (partnerId: string, input: PartnerBranchInput) =>
+      apiClient.post<PartnerBranch>(`/partners/${partnerId}/branches`, input).then((r) => r.data),
+    update: (_partnerId: string, branchId: string, input: PartnerBranchInput) =>
+      apiClient.patch<PartnerBranch>(`/branches/${branchId}`, input).then((r) => r.data),
+    remove: (_partnerId: string, branchId: string) => apiClient.delete(`/branches/${branchId}`),
+  },
+
+  contacts: {
+    list: (partnerId: string) =>
+      apiClient.get<PartnerContact[]>(`/partners/${partnerId}/contacts`).then((r) => r.data),
+    create: (partnerId: string, input: PartnerContactInput) =>
+      apiClient.post<PartnerContact>(`/partners/${partnerId}/contacts`, input).then((r) => r.data),
+    update: (_partnerId: string, contactId: string, input: PartnerContactInput) =>
+      apiClient.patch<PartnerContact>(`/partner-contacts/${contactId}`, input).then((r) => r.data),
+    remove: (_partnerId: string, contactId: string) => apiClient.delete(`/partner-contacts/${contactId}`),
+  },
+
+  requirements: {
+    list: (partnerId: string) =>
+      apiClient.get<PartnerRequirement[]>(`/partners/${partnerId}/requirements`).then((r) => r.data),
+    create: (partnerId: string, input: PartnerRequirementInput) =>
+      apiClient
+        .post<PartnerRequirement>(`/partners/${partnerId}/requirements`, input)
+        .then((r) => r.data),
+    update: (_partnerId: string, requirementId: string, input: PartnerRequirementInput) =>
+      apiClient
+        .patch<PartnerRequirement>(`/partner-requirements/${requirementId}`, input)
+        .then((r) => r.data),
+    remove: (_partnerId: string, requirementId: string) =>
+      apiClient.delete(`/partner-requirements/${requirementId}`),
+  },
+
+  appendixTemplates: {
+    list: (partnerId: string) =>
+      apiClient
+        .get<PartnerAppendixTemplate[]>(`/partners/${partnerId}/appendix-templates`)
+        .then((r) => r.data),
+    create: (partnerId: string, input: PartnerAppendixTemplateInput) =>
+      apiClient
+        .post<PartnerAppendixTemplate>(`/partners/${partnerId}/appendix-templates`, input)
+        .then((r) => r.data),
+    update: (_partnerId: string, templateId: string, input: PartnerAppendixTemplateInput) =>
+      apiClient
+        .patch<PartnerAppendixTemplate>(`/appendix-templates/${templateId}`, input)
+        .then((r) => r.data),
+    remove: (_partnerId: string, templateId: string) =>
+      apiClient.delete(`/appendix-templates/${templateId}`),
   },
 }
 

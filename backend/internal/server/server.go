@@ -43,6 +43,12 @@ func New(cfg config.Config, store *database.Store, jobsClient *asynq.Client) htt
 	contactsH := handlers.NewContactHandler(deps)
 	commsH := handlers.NewCommunicationHandler(deps)
 	brandingH := handlers.NewBrandingHandler(deps)
+	clientsH := handlers.NewClientHandler(deps)
+	partnersH := handlers.NewPartnerHandler(deps)
+	branchesH := handlers.NewBranchHandler(deps)
+	partnerContactsH := handlers.NewPartnerContactHandler(deps)
+	requirementsH := handlers.NewPartnerRequirementHandler(deps)
+	appendixTplH := handlers.NewAppendixTemplateHandler(deps)
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
@@ -109,6 +115,39 @@ func New(cfg config.Config, store *database.Store, jobsClient *asynq.Client) htt
 			r.With(mw.RequirePermission("communications:write")).Post("/communications/{commId}/status", commsH.UpdateStatus)
 			r.With(mw.RequirePermission("communications:write")).Post("/communications/{commId}/complete", commsH.CompleteFollowUp)
 			r.With(mw.RequirePermission("communications:write")).Delete("/communications/{commId}", commsH.Delete)
+
+			r.With(mw.RequirePermission("clients:read")).Get("/clients", clientsH.List)
+			r.With(mw.RequirePermission("clients:read")).Get("/clients/{id}", clientsH.Get)
+			r.With(mw.RequirePermission("clients:write")).Post("/clients", clientsH.Create)
+			r.With(mw.RequirePermission("clients:write")).Patch("/clients/{id}", clientsH.Update)
+			r.With(mw.RequirePermission("clients:delete")).Delete("/clients/{id}", clientsH.Delete)
+
+			r.With(mw.RequirePermission("partners:read")).Get("/partners", partnersH.List)
+			r.With(mw.RequirePermission("partners:read")).Get("/partners/{id}", partnersH.Get)
+			r.With(mw.RequirePermission("partners:write")).Post("/partners", partnersH.Create)
+			r.With(mw.RequirePermission("partners:write")).Patch("/partners/{id}", partnersH.Update)
+			r.With(mw.RequirePermission("partners:write")).Patch("/partners/{id}/comparable-rules", partnersH.SetComparableRules)
+			r.With(mw.RequirePermission("partners:delete")).Delete("/partners/{id}", partnersH.Delete)
+
+			r.With(mw.RequirePermission("partners:read")).Get("/partners/{id}/branches", branchesH.ListByPartner)
+			r.With(mw.RequirePermission("partners:write")).Post("/partners/{id}/branches", branchesH.Create)
+			r.With(mw.RequirePermission("partners:write")).Patch("/branches/{id}", branchesH.Update)
+			r.With(mw.RequirePermission("partners:delete")).Delete("/branches/{id}", branchesH.Delete)
+
+			r.With(mw.RequirePermission("partners:read")).Get("/partners/{id}/contacts", partnerContactsH.ListByPartner)
+			r.With(mw.RequirePermission("partners:write")).Post("/partners/{id}/contacts", partnerContactsH.Create)
+			r.With(mw.RequirePermission("partners:write")).Patch("/partner-contacts/{id}", partnerContactsH.Update)
+			r.With(mw.RequirePermission("partners:delete")).Delete("/partner-contacts/{id}", partnerContactsH.Delete)
+
+			r.With(mw.RequirePermission("partners:read")).Get("/partners/{id}/requirements", requirementsH.ListForPartner)
+			r.With(mw.RequirePermission("partners:write")).Post("/partners/{id}/requirements", requirementsH.Create)
+			r.With(mw.RequirePermission("partners:write")).Patch("/partner-requirements/{rid}", requirementsH.Update)
+			r.With(mw.RequirePermission("partners:write")).Delete("/partner-requirements/{rid}", requirementsH.Delete)
+
+			r.With(mw.RequirePermission("partners:read")).Get("/partners/{id}/appendix-templates", appendixTplH.ListForPartner)
+			r.With(mw.RequirePermission("partners:write")).Post("/partners/{id}/appendix-templates", appendixTplH.Create)
+			r.With(mw.RequirePermission("partners:write")).Patch("/appendix-templates/{templateId}", appendixTplH.Update)
+			r.With(mw.RequirePermission("partners:write")).Delete("/appendix-templates/{templateId}", appendixTplH.Delete)
 		})
 
 		r.Group(func(r chi.Router) {

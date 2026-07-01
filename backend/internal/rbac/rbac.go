@@ -18,6 +18,8 @@ var AllPermissions = []string{
 	"deals:read", "deals:write",
 	"tasks:read", "tasks:write",
 	"settings:read", "settings:write",
+	"clients:read", "clients:write", "clients:delete",
+	"partners:read", "partners:write", "partners:delete",
 }
 
 // AdminPermissions is granted to the Admin system role. (Owner always gets
@@ -30,6 +32,8 @@ var AdminPermissions = []string{
 	"deals:read", "deals:write",
 	"tasks:read", "tasks:write",
 	"settings:read", "settings:write",
+	"clients:read", "clients:write", "clients:delete",
+	"partners:read", "partners:write", "partners:delete",
 }
 
 // MemberPermissions is granted to the Member system role.
@@ -39,4 +43,6 @@ var MemberPermissions = []string{
 	"communications:read", "communications:write",
 	"deals:read", "deals:write",
 	"tasks:read", "tasks:write",
+	"clients:read", "clients:write",
+	"partners:read", "partners:write",
 }

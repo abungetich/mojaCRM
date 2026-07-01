@@ -18,6 +18,10 @@ import { UsersPage } from "@/pages/tenant/users"
 import { CommunicationsCenterPage } from "@/pages/tenant/directory/communications-center"
 import { CustomerDetailPage } from "@/pages/tenant/directory/customer-detail"
 import { CustomersListPage } from "@/pages/tenant/directory/customers-list"
+import { ClientsListPage } from "@/pages/tenant/directory/clients-list"
+import { ClientDetailPage } from "@/pages/tenant/directory/client-detail"
+import { PartnersListPage } from "@/pages/tenant/directory/partners-list"
+import { PartnerDetailPage } from "@/pages/tenant/directory/partner-detail"
 
 export default function App() {
   return (
@@ -31,6 +35,10 @@ export default function App() {
         <Route path="/" element={<TenantDashboardPage />} />
         <Route path="/customers" element={<CustomersListPage />} />
         <Route path="/customers/:id" element={<CustomerDetailPage />} />
+        <Route path="/clients" element={<ClientsListPage />} />
+        <Route path="/clients/:id" element={<ClientDetailPage />} />
+        <Route path="/partners" element={<PartnersListPage />} />
+        <Route path="/partners/:id" element={<PartnerDetailPage />} />
         <Route path="/communications" element={<CommunicationsCenterPage />} />
         <Route path="/pipeline" element={<PipelinePage />} />
         <Route path="/tasks" element={<TasksPage />} />

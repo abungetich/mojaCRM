@@ -226,3 +226,202 @@ export interface Branding {
   logo_url: string
   icon_url: string
 }
+
+// --- Clients module ---
+// A "client" is a person or company the tenant does business *for* — kept as
+// a distinct entity from Customer (the general CRM directory) since the two
+// modules serve different workflows.
+
+export type ClientType = "person" | "company"
+export type ClientIdType = "id" | "passport"
+
+export interface Client {
+  id: string
+  client_type: ClientType
+  display_name: string
+  first_name: string
+  middle_name: string
+  last_name: string
+  id_type: ClientIdType
+  id_number: string
+  company_name: string
+  reg_number: string
+  kra_pin: string
+  email: string
+  phone: string
+  address: string
+  notes: string
+  company_client_id?: string
+  company_client_name?: string
+  code: string
+  created_at: string
+  created_by_name?: string
+}
+
+export interface ClientInput {
+  client_type: ClientType
+  first_name?: string
+  middle_name?: string
+  last_name?: string
+  id_type?: ClientIdType
+  id_number?: string
+  company_name?: string
+  reg_number?: string
+  kra_pin?: string
+  email?: string
+  phone?: string
+  address?: string
+  notes?: string
+  company_client_id?: string
+  code?: string
+}
+
+// --- Partners module ---
+// A "partner" is an external organisation the tenant collaborates with
+// (a vendor / service provider), with its own branches, contact people,
+// requirements and appendix templates.
+
+export type PartnerType =
+  | "bank"
+  | "microfinance"
+  | "sacco"
+  | "insurer"
+  | "law_firm"
+  | "developer"
+  | "government"
+  | "company"
+  | "individual"
+  | "other"
+export type PartnerStatus = "active" | "inactive"
+
+export interface Partner {
+  id: string
+  name: string
+  logo_url: string
+  type: PartnerType
+  industry: string
+  partnership_model: string
+  status: PartnerStatus
+  address: string
+  town: string
+  country: string
+  contact_name: string
+  contact_title: string
+  work_email: string
+  phone_mobile: string
+  phone_office: string
+  notes: string
+  code: string
+  created_at: string
+  created_by_name?: string
+}
+
+export interface PartnerInput {
+  name: string
+  logo_url?: string
+  type?: PartnerType
+  industry?: string
+  partnership_model?: string
+  status?: PartnerStatus
+  address?: string
+  town?: string
+  country?: string
+  contact_name?: string
+  contact_title?: string
+  work_email?: string
+  phone_mobile?: string
+  phone_office?: string
+  notes?: string
+  code?: string
+}
+
+export interface PartnerBranch {
+  id: string
+  partner_id: string
+  name: string
+  town: string
+  phone: string
+  email: string
+  created_at: string
+  created_by_name?: string
+}
+
+export interface PartnerBranchInput {
+  name: string
+  town?: string
+  phone?: string
+  email?: string
+}
+
+export type PreferredChannel = "email" | "phone" | "whatsapp"
+
+export interface PartnerContact {
+  id: string
+  partner_id: string
+  first_name: string
+  middle_name: string
+  last_name: string
+  title: string
+  email: string
+  phone: string
+  whatsapp: string
+  preferred_channel: PreferredChannel
+  is_active: boolean
+  inactive_reason: string
+  created_at: string
+  created_by_name?: string
+}
+
+export interface PartnerContactInput {
+  first_name: string
+  middle_name?: string
+  last_name?: string
+  title?: string
+  email?: string
+  phone?: string
+  whatsapp?: string
+  preferred_channel?: PreferredChannel
+  is_active?: boolean
+  inactive_reason?: string
+}
+
+export type PartnerRequirementKind = "check" | "appendix"
+
+export interface PartnerRequirement {
+  id: string
+  partner_id: string
+  label: string
+  detail: string
+  kind: PartnerRequirementKind
+  sort_order: number
+}
+
+export interface PartnerRequirementInput {
+  label: string
+  detail?: string
+  kind: PartnerRequirementKind
+  sort_order?: number
+}
+
+export type AppendixFieldType = "text" | "textarea" | "checkbox"
+
+export interface AppendixField {
+  label: string
+  type: AppendixFieldType
+}
+
+export interface PartnerAppendixTemplate {
+  id: string
+  partner_id: string
+  name: string
+  description: string
+  fields: AppendixField[]
+  sort_order: number
+}
+
+export interface PartnerAppendixTemplateInput {
+  name: string
+  description?: string
+  fields: AppendixField[]
+  sort_order?: number
+}

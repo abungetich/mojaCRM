@@ -17,23 +17,39 @@ type Querier interface {
 	AssignAccountOwner(ctx context.Context, arg AssignAccountOwnerParams) (Customer, error)
 	ClearRolePermissions(ctx context.Context, roleID uuid.UUID) error
 	CompleteFollowUp(ctx context.Context, arg CompleteFollowUpParams) (CustomerCommunication, error)
+	CountClients(ctx context.Context, arg CountClientsParams) (int64, error)
 	CountCommunications(ctx context.Context, arg CountCommunicationsParams) (int64, error)
 	CountCustomers(ctx context.Context, arg CountCustomersParams) (int64, error)
+	CountPartners(ctx context.Context, arg CountPartnersParams) (int64, error)
+	CreateAppendixTemplate(ctx context.Context, arg CreateAppendixTemplateParams) (PartnerAppendixTemplate, error)
+	CreateBranch(ctx context.Context, arg CreateBranchParams) (PartnerBranch, error)
+	CreateClient(ctx context.Context, arg CreateClientParams) (Client, error)
 	CreateCommunication(ctx context.Context, arg CreateCommunicationParams) (CustomerCommunication, error)
 	CreateContact(ctx context.Context, arg CreateContactParams) (Contact, error)
 	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error)
 	CreateCustomerNote(ctx context.Context, arg CreateCustomerNoteParams) (CustomerNote, error)
+	CreatePartner(ctx context.Context, arg CreatePartnerParams) (Partner, error)
+	CreatePartnerContact(ctx context.Context, arg CreatePartnerContactParams) (CreatePartnerContactRow, error)
+	CreatePartnerRequirement(ctx context.Context, arg CreatePartnerRequirementParams) (PartnerRequirement, error)
 	CreatePlatformAdmin(ctx context.Context, arg CreatePlatformAdminParams) (PlatformAdmin, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateTenant(ctx context.Context, arg CreateTenantParams) (Tenant, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteAppendixTemplate(ctx context.Context, arg DeleteAppendixTemplateParams) error
+	DeleteBranch(ctx context.Context, arg DeleteBranchParams) error
+	DeleteClient(ctx context.Context, arg DeleteClientParams) error
 	DeleteCommunication(ctx context.Context, arg DeleteCommunicationParams) error
 	DeleteContact(ctx context.Context, arg DeleteContactParams) error
 	DeleteCustomer(ctx context.Context, arg DeleteCustomerParams) error
+	DeletePartner(ctx context.Context, arg DeletePartnerParams) error
+	DeletePartnerContact(ctx context.Context, arg DeletePartnerContactParams) error
+	DeletePartnerRequirement(ctx context.Context, arg DeletePartnerRequirementParams) error
 	DeleteUser(ctx context.Context, arg DeleteUserParams) error
+	GetClient(ctx context.Context, arg GetClientParams) (GetClientRow, error)
 	GetCommunicationByID(ctx context.Context, arg GetCommunicationByIDParams) (CustomerCommunication, error)
 	GetContactByID(ctx context.Context, arg GetContactByIDParams) (Contact, error)
 	GetCustomerByID(ctx context.Context, arg GetCustomerByIDParams) (GetCustomerByIDRow, error)
+	GetPartner(ctx context.Context, arg GetPartnerParams) (Partner, error)
 	GetPlatformAdminByEmail(ctx context.Context, email string) (PlatformAdmin, error)
 	GetPlatformAdminByID(ctx context.Context, id uuid.UUID) (PlatformAdmin, error)
 	GetPlatformSettings(ctx context.Context) (PlatformSetting, error)
@@ -46,13 +62,25 @@ type Querier interface {
 	GetUserByVerificationToken(ctx context.Context, verificationToken *string) (User, error)
 	GetUserPermissionKeys(ctx context.Context, id uuid.UUID) ([]string, error)
 	GetUserWithRoleByID(ctx context.Context, id uuid.UUID) (GetUserWithRoleByIDRow, error)
+	ListAppendixTemplatesForPartner(ctx context.Context, arg ListAppendixTemplatesForPartnerParams) ([]PartnerAppendixTemplate, error)
+	ListBranchesByPartner(ctx context.Context, arg ListBranchesByPartnerParams) ([]PartnerBranch, error)
+	ListClients(ctx context.Context, arg ListClientsParams) ([]ListClientsRow, error)
 	ListCommunications(ctx context.Context, arg ListCommunicationsParams) ([]ListCommunicationsRow, error)
 	ListCommunicationsByCustomer(ctx context.Context, customerID uuid.UUID) ([]ListCommunicationsByCustomerRow, error)
 	ListContactsByCustomer(ctx context.Context, customerID uuid.UUID) ([]Contact, error)
+	// Partner contact persons. Distinct from MojaCRM's `contacts` table
+	// (Directory module, belongs to customers) — see 0006_clients_partners.up.sql.
+	// Explicit column lists keep deleted_* (internal audit) out of returned rows.
+	ListContactsByPartner(ctx context.Context, arg ListContactsByPartnerParams) ([]ListContactsByPartnerRow, error)
 	ListCustomerNotes(ctx context.Context, customerID uuid.UUID) ([]ListCustomerNotesRow, error)
 	ListCustomerTags(ctx context.Context, customerID uuid.UUID) ([]Tag, error)
 	ListCustomers(ctx context.Context, arg ListCustomersParams) ([]ListCustomersRow, error)
 	ListFollowUpsDue(ctx context.Context, tenantID uuid.UUID) ([]ListFollowUpsDueRow, error)
+	// Per-partner requirement packs. Job-level completion tracking
+	// (instruction_requirement_status in propsense) is out of scope here since
+	// MojaCRM has no `instructions` table yet — see 0006_clients_partners.up.sql.
+	ListPartnerRequirements(ctx context.Context, arg ListPartnerRequirementsParams) ([]PartnerRequirement, error)
+	ListPartners(ctx context.Context, arg ListPartnersParams) ([]Partner, error)
 	ListPermissions(ctx context.Context) ([]Permission, error)
 	ListPlatformAdmins(ctx context.Context) ([]PlatformAdmin, error)
 	ListRolePermissionKeys(ctx context.Context, roleID uuid.UUID) ([]string, error)
@@ -66,12 +94,19 @@ type Querier interface {
 	SetContactPrimary(ctx context.Context, arg SetContactPrimaryParams) (Contact, error)
 	SetContactStatus(ctx context.Context, arg SetContactStatusParams) (Contact, error)
 	SetCustomerStatus(ctx context.Context, arg SetCustomerStatusParams) (Customer, error)
+	SetPartnerComparableRules(ctx context.Context, arg SetPartnerComparableRulesParams) error
 	SetTenantStatus(ctx context.Context, arg SetTenantStatusParams) (Tenant, error)
 	SetVerificationToken(ctx context.Context, arg SetVerificationTokenParams) error
 	UnsetPrimaryContacts(ctx context.Context, customerID uuid.UUID) error
+	UpdateAppendixTemplate(ctx context.Context, arg UpdateAppendixTemplateParams) (PartnerAppendixTemplate, error)
+	UpdateBranch(ctx context.Context, arg UpdateBranchParams) (PartnerBranch, error)
+	UpdateClient(ctx context.Context, arg UpdateClientParams) (Client, error)
 	UpdateCommunicationStatus(ctx context.Context, arg UpdateCommunicationStatusParams) (CustomerCommunication, error)
 	UpdateContact(ctx context.Context, arg UpdateContactParams) (Contact, error)
 	UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (Customer, error)
+	UpdatePartner(ctx context.Context, arg UpdatePartnerParams) (Partner, error)
+	UpdatePartnerContact(ctx context.Context, arg UpdatePartnerContactParams) (UpdatePartnerContactRow, error)
+	UpdatePartnerRequirement(ctx context.Context, arg UpdatePartnerRequirementParams) error
 	UpdatePlatformSettings(ctx context.Context, arg UpdatePlatformSettingsParams) (PlatformSetting, error)
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
