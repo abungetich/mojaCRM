@@ -11,6 +11,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	"mojacrm/backend/docs"
 	"mojacrm/backend/internal/config"
 	"mojacrm/backend/internal/database"
 	"mojacrm/backend/internal/handlers"
@@ -47,6 +48,12 @@ func New(cfg config.Config, store *database.Store, jobsClient *asynq.Client) htt
 		w.Write([]byte("ok"))
 	})
 	r.Handle("/metrics", promhttp.Handler())
+
+	r.Get("/api/docs", swaggerUIHandler)
+	r.Get("/api/docs/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/yaml")
+		w.Write(docs.OpenAPISpec)
+	})
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/auth/signup", authH.Signup)
@@ -125,6 +132,30 @@ func New(cfg config.Config, store *database.Store, jobsClient *asynq.Client) htt
 	}
 
 	return r
+}
+
+// swaggerUIHandler renders Swagger UI (loaded from a CDN) pointed at our
+// embedded OpenAPI spec. In production this route sits behind HTTP Basic
+// Auth at the Caddy layer (see deploy/Caddyfile.snippet) — it's not public.
+func swaggerUIHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(`<!doctype html>
+<html>
+<head>
+  <title>MojaCRM API Docs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = () => SwaggerUIBundle({
+      url: "/api/docs/openapi.yaml",
+      dom_id: "#swagger-ui",
+    });
+  </script>
+</body>
+</html>`))
 }
 
 // spaHandler serves the built frontend: real files (JS/CSS/images) as-is,

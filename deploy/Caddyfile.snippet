@@ -16,8 +16,17 @@
 # apex + www are reserved for a marketing site.
 
 # --- The app ---
+# /api/docs (Swagger UI + the OpenAPI spec) is gated with HTTP Basic Auth —
+# it's not meant to be public. Generate the hash with:
+#   docker exec amac-caddy caddy hash-password --plaintext '<a real password>'
+# and paste it below (the username can be anything).
 app.mojacrm.com {
     encode zstd gzip
+
+    basic_auth /api/docs* {
+        admin $2a$14$O62qndouzSzeS0mxMgJnT.boCU0ht.Wn7Mwv4dmX.XJXkJHJZQQhm
+    }
+
     reverse_proxy mojacrm-api-1:8080
 }
 

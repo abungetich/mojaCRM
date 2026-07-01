@@ -130,12 +130,17 @@ curl -s http://127.0.0.1:3102/healthz   # should print "ok"
 ## 5. Wire up Caddy
 
 ```bash
-# Still on the app VPS:
+# Still on the app VPS. First generate the Basic Auth hash for /api/docs
+# (Swagger UI) — pick your own password, paste the hash into the snippet
+# before copying it in:
+docker exec amac-caddy caddy hash-password --plaintext '<a real password>'
+
 cat deploy/Caddyfile.snippet   # copy both blocks (app.mojacrm.com + apex/www)
 
 nano /opt/amacplc/Caddyfile    # append both blocks from the snippet
                                 # (append/in-place edit — do NOT `sed -i`)
 
+docker exec amac-caddy caddy validate --config /etc/caddy/Caddyfile  # sanity check first
 docker exec amac-caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
@@ -150,6 +155,8 @@ VPS (they already are, since PropSense is live on the same box/Caddy).
 curl -sI https://app.mojacrm.com                       # 200, valid TLS
 curl -s https://app.mojacrm.com/api/v1/branding        # public branding endpoint
 curl -sI https://mojacrm.com                           # 301 -> https://app.mojacrm.com (until a marketing site exists)
+curl -sI https://app.mojacrm.com/api/docs               # 401 (no credentials) — confirms docs are gated
+curl -sI -u admin:<password> https://app.mojacrm.com/api/docs   # 200 — Swagger UI
 ```
 
 Open `https://app.mojacrm.com` in a browser — you should see the MojaCRM
