@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FileText } from "lucide-react"
 import { useEffect } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, type Resolver } from "react-hook-form"
 import { z } from "zod"
 
 import { DatePicker } from "@/components/date-picker"
@@ -104,7 +104,7 @@ export function DocumentFormSheet({
   submitting?: boolean
 }) {
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as Resolver<FormValues>,
     defaultValues: doc ? toFormValues(doc) : empty,
   })
 

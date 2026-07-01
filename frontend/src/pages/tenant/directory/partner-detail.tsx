@@ -16,7 +16,7 @@ import {
   User,
 } from "lucide-react"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, type Resolver } from "react-hook-form"
 import { z } from "zod"
 import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -68,7 +68,7 @@ function ComparableRulesCard({ partner, canWrite }: { partner: Partner; canWrite
   const queryClient = useQueryClient()
   const [editOpen, setEditOpen] = useState(false)
   const form = useForm<ComparableRulesValues>({
-    resolver: zodResolver(comparableRulesSchema),
+    resolver: zodResolver(comparableRulesSchema) as Resolver<ComparableRulesValues>,
     values: {
       comp_min_count: partner.comp_min_count,
       comp_max_age_months: partner.comp_max_age_months,

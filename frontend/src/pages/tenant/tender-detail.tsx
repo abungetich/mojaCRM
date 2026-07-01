@@ -40,7 +40,7 @@ import { TenderFormSheet } from "@/pages/tenant/tender-form"
 import { tenders as tendersApi, users as usersApi } from "@/lib/api"
 import { useAuth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
-import type { TenderInput } from "@/types"
+import type { TenderDocumentKind, TenderInput } from "@/types"
 import {
   STAGE_LABEL,
   STAGE_TONE,
@@ -92,7 +92,12 @@ export function TenderDetailPage() {
     reference: "",
     note: "",
   })
-  const [newDoc, setNewDoc] = useState({ name: "", label: "", kind: "tender", data_url: "" })
+  const [newDoc, setNewDoc] = useState<{ name: string; label: string; kind: TenderDocumentKind; data_url: string }>({
+    name: "",
+    label: "",
+    kind: "tender",
+    data_url: "",
+  })
   const [letterId, setLetterId] = useState("")
   const [letterPreview, setLetterPreview] = useState<{ name: string; text: string } | null>(null)
 
@@ -390,7 +395,10 @@ export function TenderDetailPage() {
                     />
                     {newDoc.data_url && <p className="text-muted-foreground truncate text-xs">{newDoc.name}</p>}
                   </div>
-                  <Select value={newDoc.kind} onValueChange={(v) => setNewDoc((d) => ({ ...d, kind: v }))}>
+                  <Select
+                    value={newDoc.kind}
+                    onValueChange={(v) => v && setNewDoc((d) => ({ ...d, kind: v as TenderDocumentKind }))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -428,7 +436,7 @@ export function TenderDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
               <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
-                <Select value={letterId} onValueChange={setLetterId}>
+                <Select value={letterId} onValueChange={(v) => setLetterId(v ?? "")}>
                   <SelectTrigger>
                     <SelectValue placeholder="Pick a letter template" />
                   </SelectTrigger>
@@ -465,7 +473,7 @@ export function TenderDetailPage() {
                 <div className="space-y-1.5">
                   <Label className="text-xs">Change stage</Label>
                   <div className="flex gap-2">
-                    <Select value={stageSel || tender.stage} onValueChange={setStageSel}>
+                    <Select value={stageSel || tender.stage} onValueChange={(v) => setStageSel(v ?? "")}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

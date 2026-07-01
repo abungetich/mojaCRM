@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Gavel, Plus, Trash2 } from "lucide-react"
 import { useEffect } from "react"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useFieldArray, useForm, type Resolver } from "react-hook-form"
 import { z } from "zod"
 
 import { Combobox } from "@/components/combobox"
@@ -122,7 +122,7 @@ export function TenderFormSheet({
   submitting?: boolean
 }) {
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as Resolver<FormValues>,
     defaultValues: tender ? toFormValues(tender) : empty,
   })
   const { fields, append, remove } = useFieldArray({ control: form.control, name: "requirements" })
