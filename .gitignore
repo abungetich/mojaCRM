@@ -5,3 +5,4 @@ dist/
 .env
 .env.local
 backend/bin/
+.claude/scheduled_tasks.lock
