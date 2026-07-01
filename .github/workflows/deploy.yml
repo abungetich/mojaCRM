@@ -1,25 +1,78 @@
-name: Build and deploy
+name: Build, test, and deploy
 
-# Runs on our own self-hosted runner (registered on the app VPS itself,
-# see deploy/DEPLOY.md), not GitHub-hosted runners — the whole point is to
-# build and deploy directly on the box that serves app.mojacrm.com.
+# Everything runs on our own self-hosted runner (registered directly on the
+# app VPS, see deploy/DEPLOY.md) — not GitHub-hosted runners. Build/test
+# jobs gate the deploy job so a broken build never reaches production.
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch: {}
 
 jobs:
-  build-and-deploy:
+  backend:
+    runs-on: [self-hosted, mojacrm]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mojacrm
+          POSTGRES_PASSWORD: mojacrm
+          POSTGRES_DB: mojacrm
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U mojacrm"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+        env:
+          DATABASE_URL: postgres://mojacrm:mojacrm@localhost:5432/mojacrm?sslmode=disable
+          REDIS_ADDR: localhost:6379
+
+  frontend:
+    runs-on: [self-hosted, mojacrm]
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  deploy:
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: [self-hosted, mojacrm]
     steps:
       - uses: actions/checkout@v4
 
-      # Docker isn't installed inside a sandbox here — Go/Node aren't
-      # installed on the runner host either, and don't need to be: the
-      # production Dockerfile's multi-stage build already runs the real
-      # `go build`/`go vet` and `npm run build` (tsc -b + vite build) as
-      # part of producing the image. If either fails, this step fails the
-      # job before anything is deployed — same gate as building manually.
+      # Re-runs the same go build/vet + npm run build inside Dockerfile.prod's
+      # multi-stage build — belt-and-suspenders with the backend/frontend
+      # jobs above, and the only place that actually produces the deploy image.
       - name: Build images
         run: docker compose -f deploy/docker-compose.contabo.yml build
 
