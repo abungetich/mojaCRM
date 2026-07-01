@@ -15,7 +15,7 @@ export function AdminLayout() {
   if (loading) {
     return <div className="flex min-h-svh items-center justify-center"><PageLoader /></div>
   }
-  if (!session || session.kind !== "platform") return <Navigate to="/admin/login" replace />
+  if (!session || session.kind !== "platform") return <Navigate to="/login" replace />
 
   const item = (label: string, icon: NavGroup["items"][number]["icon"], path: string) => ({
     label,

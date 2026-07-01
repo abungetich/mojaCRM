@@ -212,7 +212,12 @@ func (h *AuthHandler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, sessionResponse{Session: *session})
 }
 
-// Login authenticates a tenant user by email + password.
+// Login authenticates by email + password against both tenant users and
+// platform admins — there's one login form, and whichever store the
+// password actually matches determines the kind of session issued. A
+// tenant email/password pair and a platform admin one are vanishingly
+// unlikely to collide (different tables, different emails in practice),
+// so trying both in sequence is safe.
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Email    string `json:"email"`
@@ -223,59 +228,45 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	user, err := h.Store.Queries.GetUserByEmailAnyTenant(ctx, strings.ToLower(body.Email))
-	if err != nil || !authpkg.CheckPassword(user.PasswordHash, body.Password) {
-		httpx.Error(w, http.StatusUnauthorized, "invalid credentials")
-		return
-	}
-	if user.Status == "pending_verification" {
-		httpx.Error(w, http.StatusForbidden, "please verify your email before signing in")
+	email := strings.ToLower(body.Email)
+
+	if user, err := h.Store.Queries.GetUserByEmailAnyTenant(ctx, email); err == nil && authpkg.CheckPassword(user.PasswordHash, body.Password) {
+		if user.Status == "pending_verification" {
+			httpx.Error(w, http.StatusForbidden, "please verify your email before signing in")
+			return
+		}
+		token, err := authpkg.GenerateToken(h.JWTSecret, user.ID, user.TenantID, false)
+		if err != nil {
+			httpx.Error(w, http.StatusInternalServerError, "could not create session")
+			return
+		}
+		authpkg.SetSessionCookie(w, token, h.CookieDomain, h.CookieSecure)
+
+		session, err := h.buildTenantSession(ctx, user.ID)
+		if err != nil {
+			httpx.Error(w, http.StatusInternalServerError, "could not load session")
+			return
+		}
+		httpx.JSON(w, http.StatusOK, sessionResponse{Session: *session})
 		return
 	}
 
-	token, err := authpkg.GenerateToken(h.JWTSecret, user.ID, user.TenantID, false)
-	if err != nil {
-		httpx.Error(w, http.StatusInternalServerError, "could not create session")
+	if admin, err := h.Store.Queries.GetPlatformAdminByEmail(ctx, email); err == nil && authpkg.CheckPassword(admin.PasswordHash, body.Password) {
+		token, err := authpkg.GenerateToken(h.JWTSecret, admin.ID, uuid.Nil, true)
+		if err != nil {
+			httpx.Error(w, http.StatusInternalServerError, "could not create session")
+			return
+		}
+		authpkg.SetSessionCookie(w, token, h.CookieDomain, h.CookieSecure)
+		httpx.JSON(w, http.StatusOK, sessionResponse{Session: sessionView{
+			Kind:        "platform",
+			User:        UserView{ID: admin.ID, Email: admin.Email, Name: admin.Name, Status: admin.Status, CreatedAt: admin.CreatedAt},
+			Permissions: []string{"*"},
+		}})
 		return
 	}
-	authpkg.SetSessionCookie(w, token, h.CookieDomain, h.CookieSecure)
 
-	session, err := h.buildTenantSession(ctx, user.ID)
-	if err != nil {
-		httpx.Error(w, http.StatusInternalServerError, "could not load session")
-		return
-	}
-	httpx.JSON(w, http.StatusOK, sessionResponse{Session: *session})
-}
-
-// PlatformLogin authenticates a platform admin by email + password.
-func (h *AuthHandler) PlatformLogin(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-	if err := httpx.Decode(r, &body); err != nil {
-		httpx.Error(w, http.StatusBadRequest, "invalid body")
-		return
-	}
-	ctx := r.Context()
-	admin, err := h.Store.Queries.GetPlatformAdminByEmail(ctx, strings.ToLower(body.Email))
-	if err != nil || !authpkg.CheckPassword(admin.PasswordHash, body.Password) {
-		httpx.Error(w, http.StatusUnauthorized, "invalid credentials")
-		return
-	}
-	token, err := authpkg.GenerateToken(h.JWTSecret, admin.ID, uuid.Nil, true)
-	if err != nil {
-		httpx.Error(w, http.StatusInternalServerError, "could not create session")
-		return
-	}
-	authpkg.SetSessionCookie(w, token, h.CookieDomain, h.CookieSecure)
-
-	httpx.JSON(w, http.StatusOK, sessionResponse{Session: sessionView{
-		Kind:        "platform",
-		User:        UserView{ID: admin.ID, Email: admin.Email, Name: admin.Name, Status: admin.Status, CreatedAt: admin.CreatedAt},
-		Permissions: []string{"*"},
-	}})
+	httpx.Error(w, http.StatusUnauthorized, "invalid credentials")
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {

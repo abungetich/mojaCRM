@@ -13,7 +13,7 @@ import type { Session, SignupResult } from "@/types"
 interface AuthContextValue {
   session: Session | null
   loading: boolean
-  login: (email: string, password: string, platform?: boolean) => Promise<Session>
+  login: (email: string, password: string) => Promise<Session>
   logout: () => Promise<void>
   refresh: () => Promise<void>
   hasPermission: (key: string) => boolean
@@ -40,8 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh().finally(() => setLoading(false))
   }, [refresh])
 
-  const login = useCallback<AuthContextValue["login"]>(async (email, password, platform) => {
-    const s = await authApi.login(email, password, platform)
+  const login = useCallback<AuthContextValue["login"]>(async (email, password) => {
+    const s = await authApi.login(email, password)
     setSession(s)
     return s
   }, [])

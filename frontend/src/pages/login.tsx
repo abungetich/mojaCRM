@@ -25,7 +25,7 @@ const schema = z.object({
 })
 type FormValues = z.infer<typeof schema>
 
-export function LoginPage({ platform = false }: { platform?: boolean }) {
+export function LoginPage() {
   const { login } = useAuth()
   const { data: branding } = useBranding()
   const appName = branding?.app_name ?? "MojaCRM"
@@ -37,8 +37,8 @@ export function LoginPage({ platform = false }: { platform?: boolean }) {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await login(values.email, values.password, platform)
-      navigate(platform ? "/admin" : "/")
+      const session = await login(values.email, values.password)
+      navigate(session.kind === "platform" ? "/admin" : "/")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Login failed")
     }
@@ -51,10 +51,8 @@ export function LoginPage({ platform = false }: { platform?: boolean }) {
           <div className="brand-mark mb-2 flex size-10 items-center justify-center rounded-xl text-white">
             <ShieldCheck className="size-5" />
           </div>
-          <CardTitle>{platform ? `${appName} admin sign in` : `Sign in to ${appName}`}</CardTitle>
-          <CardDescription>
-            {platform ? "Internal staff access only" : "Enter your workspace credentials"}
-          </CardDescription>
+          <CardTitle>Sign in to {appName}</CardTitle>
+          <CardDescription>Enter your workspace or admin credentials</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -90,14 +88,12 @@ export function LoginPage({ platform = false }: { platform?: boolean }) {
               </Button>
             </form>
           </Form>
-          {!platform && (
-            <p className="text-muted-foreground mt-4 text-center text-sm">
-              Don&apos;t have a workspace yet?{" "}
-              <Link to="/signup" className="text-primary underline-offset-4 hover:underline">
-                Create one
-              </Link>
-            </p>
-          )}
+          <p className="text-muted-foreground mt-4 text-center text-sm">
+            Don&apos;t have a workspace yet?{" "}
+            <Link to="/signup" className="text-primary underline-offset-4 hover:underline">
+              Create one
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>

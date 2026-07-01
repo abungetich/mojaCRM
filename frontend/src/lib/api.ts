@@ -24,9 +24,9 @@ export const branding = {
 }
 
 export const auth = {
-  login: (email: string, password: string, platform = false) =>
+  login: (email: string, password: string) =>
     apiClient
-      .post<{ session: Session }>(platform ? "/admin/auth/login" : "/auth/login", { email, password })
+      .post<{ session: Session }>("/auth/login", { email, password })
       .then((r) => r.data.session),
   logout: () => apiClient.post("/auth/logout"),
   me: () => apiClient.get<Session>("/auth/me").then((r) => r.data),

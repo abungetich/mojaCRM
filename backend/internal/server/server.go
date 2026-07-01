@@ -61,7 +61,6 @@ func New(cfg config.Config, store *database.Store, jobsClient *asynq.Client) htt
 		r.Post("/auth/login", authH.Login)
 		r.Post("/auth/logout", authH.Logout)
 		r.Get("/auth/me", authH.Me)
-		r.Post("/admin/auth/login", authH.PlatformLogin)
 		r.Get("/branding", brandingH.Get)
 
 		r.Group(func(r chi.Router) {

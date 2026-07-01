@@ -25,7 +25,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/admin/login" element={<LoginPage platform />} />
+      <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 
       <Route element={<TenantLayout />}>
         <Route path="/" element={<TenantDashboardPage />} />

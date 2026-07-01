@@ -34,7 +34,11 @@ paths:
   /auth/login:
     post:
       tags: [auth]
-      summary: Log in as a tenant user
+      summary: Log in as a tenant user or a platform admin
+      description: >
+        One login endpoint for both account kinds. The email + password is
+        checked against tenant users first, then platform admins; whichever
+        one matches determines the session's "kind" in the response.
       requestBody:
         required: true
         content:
@@ -61,12 +65,6 @@ paths:
       responses:
         "200": { description: Current session }
         "401": { description: Unauthenticated }
-  /admin/auth/login:
-    post:
-      tags: [admin]
-      summary: Log in as a platform admin
-      responses:
-        "200": { description: Session created }
   /users:
     get:
       tags: [users]
