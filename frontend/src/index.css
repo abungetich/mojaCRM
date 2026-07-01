@@ -1,0 +1,191 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   MojaCRM brand tokens — everything theme-related lives here.
+   Sourced from the actual MOJA logo: navy wordmark + green
+   checkmark accent, plus the supporting neutrals/blue given
+   alongside it. Change a value once, it ripples through the app.
+   ============================================================ */
+:root {
+  --radius: 0.625rem;
+
+  /* --- Brand palette (from the logo) --- */
+  --brand-navy: #0b1f4d; /* wordmark */
+  --brand-green: #22c55e; /* checkmark — primary brand color */
+  --brand-emerald: #16a34a; /* deeper green, gradient end-stop */
+  --brand-blue: #2563eb; /* secondary/info accent, used sparingly */
+  --brand-slate: #94a3b8;
+  --brand-mist: #f1f5f9;
+  /* Modern near-black neutral for large dark surfaces (sidebar) —
+     deliberately NOT navy, so the sidebar doesn't read as "blue". */
+  --brand-ink: #15181e;
+
+  /* --- Gradients (reused by ModalHeader, brand marks, header bar) --- */
+  --brand-gradient: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-emerald) 100%);
+  --header-gradient: linear-gradient(120deg, #ffffff 0%, #f0fdf4 55%, #dcfce7 100%);
+
+  /* --- Base shadcn tokens, mapped to the brand palette --- */
+  --background: #ffffff;
+  --foreground: var(--brand-navy);
+  --card: #ffffff;
+  --card-foreground: var(--brand-navy);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-navy);
+  --primary: var(--brand-green);
+  --primary-foreground: #ffffff;
+  --secondary: var(--brand-mist);
+  --secondary-foreground: var(--brand-navy);
+  --muted: var(--brand-mist);
+  --muted-foreground: var(--brand-slate);
+  --accent: var(--brand-mist);
+  --accent-foreground: var(--brand-navy);
+  --success: var(--brand-green);
+  --success-foreground: #ffffff;
+  --info: var(--brand-blue);
+  --info-foreground: #ffffff;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: var(--brand-green);
+
+  /* --- Sidebar: modern charcoal "ink", not navy — green active-state accent --- */
+  --sidebar: var(--brand-ink);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--brand-green);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: color-mix(in oklab, var(--brand-ink), white 12%);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: color-mix(in oklab, var(--brand-ink), white 16%);
+  --sidebar-ring: var(--brand-green);
+
+  /* --- Chart / stat-card palette --- */
+  --chart-1: var(--brand-green);
+  --chart-2: var(--brand-blue);
+  --chart-3: var(--brand-navy);
+  --chart-4: var(--brand-emerald);
+  --chart-5: var(--brand-slate);
+}
+
+.dark {
+  --background: var(--brand-navy);
+  --foreground: #ffffff;
+  --card: color-mix(in oklab, var(--brand-navy), white 8%);
+  --card-foreground: #ffffff;
+  --popover: color-mix(in oklab, var(--brand-navy), white 8%);
+  --popover-foreground: #ffffff;
+  --primary: var(--brand-green);
+  --primary-foreground: #ffffff;
+  --secondary: color-mix(in oklab, var(--brand-navy), white 15%);
+  --secondary-foreground: #ffffff;
+  --muted: color-mix(in oklab, var(--brand-navy), white 15%);
+  --muted-foreground: var(--brand-slate);
+  --accent: color-mix(in oklab, var(--brand-navy), white 15%);
+  --accent-foreground: #ffffff;
+  --success: var(--brand-green);
+  --success-foreground: #ffffff;
+  --info: var(--brand-blue);
+  --info-foreground: #ffffff;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: color-mix(in oklab, var(--brand-navy), white 20%);
+  --input: color-mix(in oklab, var(--brand-navy), white 20%);
+  --ring: var(--brand-green);
+  --sidebar: #0a0c10;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--brand-green);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: color-mix(in oklab, var(--brand-ink), white 10%);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: color-mix(in oklab, var(--brand-ink), white 14%);
+  --sidebar-ring: var(--brand-green);
+  --chart-1: var(--brand-green);
+  --chart-2: var(--brand-blue);
+  --chart-3: var(--brand-slate);
+  --chart-4: var(--brand-emerald);
+  --chart-5: color-mix(in oklab, var(--brand-green), white 30%);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --font-heading: 'Poppins', sans-serif;
+  --font-sans: 'Poppins', sans-serif;
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-normal;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold;
+  }
+}
+
+@layer components {
+  /* Sticky header backdrop — subtle mint gradient instead of flat white */
+  .app-header {
+    background-image: var(--header-gradient);
+  }
+  /* Logo fallback / brand mark background */
+  .brand-mark {
+    background-image: var(--brand-gradient);
+  }
+}

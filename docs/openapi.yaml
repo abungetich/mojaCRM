@@ -1,0 +1,134 @@
+openapi: 3.0.3
+info:
+  title: MojaCRM API
+  version: "0.1.0"
+  description: >
+    Multi-tenant CRM API. Serves the web dashboard today and is designed to
+    also serve future first-party mobile apps (same JSON contract).
+servers:
+  - url: /api/v1
+tags:
+  - name: auth
+  - name: users
+  - name: roles
+  - name: admin
+paths:
+  /auth/signup:
+    post:
+      tags: [auth]
+      summary: Create a new tenant workspace with an Owner user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [workspace_name, name, email, password]
+              properties:
+                workspace_name: { type: string }
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        "201": { description: Session created }
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Log in as a tenant user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200": { description: Session created }
+        "401": { description: Invalid credentials }
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Clear the session cookie
+      responses:
+        "200": { description: Logged out }
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: Get the current session (tenant user or platform admin)
+      responses:
+        "200": { description: Current session }
+        "401": { description: Unauthenticated }
+  /admin/auth/login:
+    post:
+      tags: [admin]
+      summary: Log in as a platform admin
+      responses:
+        "200": { description: Session created }
+  /users:
+    get:
+      tags: [users]
+      summary: List users in the current tenant (requires users:read)
+      responses:
+        "200": { description: List of users }
+    post:
+      tags: [users]
+      summary: Invite a user into the current tenant (requires users:write)
+      responses:
+        "201": { description: User created }
+  /users/{id}:
+    patch:
+      tags: [users]
+      summary: Update a user's role or status (requires users:write)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Updated user }
+    delete:
+      tags: [users]
+      summary: Remove a user from the tenant (requires users:write)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Deleted }
+  /roles:
+    get:
+      tags: [roles]
+      summary: List roles in the current tenant (requires roles:read)
+      responses:
+        "200": { description: List of roles }
+    post:
+      tags: [roles]
+      summary: Create a role (requires roles:write)
+      responses:
+        "201": { description: Role created }
+  /permissions:
+    get:
+      tags: [roles]
+      summary: List the full permission catalog (requires roles:read)
+      responses:
+        "200": { description: List of permissions }
+  /admin/tenants:
+    get:
+      tags: [admin]
+      summary: List all tenants (platform admin only)
+      responses:
+        "200": { description: List of tenants }
+    post:
+      tags: [admin]
+      summary: Create a tenant (platform admin only)
+      responses:
+        "201": { description: Tenant created }
+  /admin/team:
+    get:
+      tags: [admin]
+      summary: List platform admins
+      responses:
+        "200": { description: List of platform admins }
+    post:
+      tags: [admin]
+      summary: Create a platform admin
+      responses:
+        "201": { description: Platform admin created }
