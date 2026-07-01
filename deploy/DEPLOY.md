@@ -113,13 +113,18 @@ a self-hosted GitHub Actions runner registered directly on this VPS — see
 `.github/workflows/deploy.yml` and step 7 below. Push to `main`, then watch
 it run at https://github.com/abungetich/mojaCRM/actions.
 
-**Manual fallback:**
+**Manual fallback:** CI checks out the repo into the runner's own workspace
+(`/opt/actions-runner-mojacrm/_work/mojaCRM/mojaCRM`), NOT `/opt/mojacrm` —
+that directory was only used for the original manual deploys and is no
+longer kept in sync automatically. If you ever need to deploy by hand:
 ```bash
 ssh amac-server
-cd /opt/mojacrm
-git pull
+cd /opt/actions-runner-mojacrm/_work/mojaCRM/mojaCRM   # or /opt/mojacrm after a manual `git pull` there
 docker compose -f deploy/docker-compose.contabo.yml up -d --build
 ```
+Either path works — `docker compose`'s project name is pinned to `mojacrm`
+in the compose file, so it manages the same containers regardless of which
+checkout you run it from.
 
 Migrations run automatically on API startup (see
 `internal/database/migrate.go`) — no separate migrate step needed.
