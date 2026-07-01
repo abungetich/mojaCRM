@@ -99,7 +99,7 @@ this box):
 mkdir -p /srv/mojacrm/backups
 cat > /etc/cron.daily/mojacrm-db-backup <<'EOF'
 #!/bin/sh
-docker exec mojacrm-postgres-1 \
+docker exec mojacrm-postgres \
   pg_dump -U mojacrm mojacrm | gzip > /srv/mojacrm/backups/mojacrm-$(date +%F).sql.gz
 find /srv/mojacrm/backups -name '*.sql.gz' -mtime +14 -delete
 EOF
