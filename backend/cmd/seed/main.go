@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -22,14 +23,19 @@ const (
 	demoOwnerEmail = "owner@acme.test"
 	demoOwnerName  = "Ada Owner"
 	demoOwnerPass  = "password123"
-	platformEmail  = "admin@mojacrm.test"
-	platformName   = "Platform Admin"
-	platformPass   = "password123"
 )
 
+// The platform admin's identity is overridable via env vars so production
+// can seed a real account instead of the demo one; SEED_DEMO_TENANT lets
+// production skip the fake Acme tenant entirely.
 func main() {
 	cfg := config.Load()
 	ctx := context.Background()
+
+	platformEmail := getenv("PLATFORM_ADMIN_EMAIL", "admin@mojacrm.test")
+	platformName := getenv("PLATFORM_ADMIN_NAME", "Platform Admin")
+	platformPass := getenv("PLATFORM_ADMIN_PASSWORD", "password123")
+	seedDemoTenant := getenv("SEED_DEMO_TENANT", "true") == "true"
 
 	store, err := database.New(ctx, cfg.DatabaseURL)
 	if err != nil {
@@ -41,7 +47,9 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	if _, err := store.Queries.GetTenantBySlug(ctx, demoTenantSlug); err == nil {
+	if !seedDemoTenant {
+		log.Println("SEED_DEMO_TENANT=false, skipping demo tenant seed")
+	} else if _, err := store.Queries.GetTenantBySlug(ctx, demoTenantSlug); err == nil {
 		log.Println("demo tenant already exists, skipping tenant seed")
 	} else {
 		seedTenant(ctx, store)
@@ -63,6 +71,13 @@ func main() {
 		}
 		log.Printf("created platform admin %s / %s", platformEmail, platformPass)
 	}
+}
+
+func getenv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func seedTenant(ctx context.Context, store *database.Store) {

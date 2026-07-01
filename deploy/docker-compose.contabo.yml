@@ -1,9 +1,10 @@
 # Production compose for the APP VPS (the existing Contabo box already
 # running the shared `amac-caddy` reverse proxy + waterboy/PropSense).
 #
-# Postgres is NOT here — it runs on a separate VPS. This box only has the
-# API, the Asynq worker, and Redis (Redis stays local: low-latency job
-# queue + auth-cookie-adjacent caching, no reason to split it out).
+# Postgres runs on this same box (own container/volume, alongside the other
+# apps' own postgres containers — propsense-postgres, capstone-postgres,
+# etc.) rather than a separate VPS. It's not exposed outside the docker
+# network, so it's reachable only by the api/worker/seed containers here.
 #
 # Secrets come from /etc/mojacrm/.env.production (chmod 600), following the
 # same pattern as /etc/propsense/.env.production.
@@ -17,6 +18,19 @@
 name: mojacrm
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - /etc/mojacrm/.env.production
+    volumes:
+      - /srv/mojacrm/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mojacrm}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -42,6 +56,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     ports:
       - "127.0.0.1:3102:8080" # localhost-only, for health checks during deploy
     networks:
@@ -62,6 +78,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
       - default
 
@@ -74,6 +92,9 @@ services:
         BIN: seed
     env_file:
       - /etc/mojacrm/.env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
     profiles:
       - seed
 
