@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AddComparablePhoto(ctx context.Context, arg AddComparablePhotoParams) (ComparablePhoto, error)
 	AddDepartmentMember(ctx context.Context, arg AddDepartmentMemberParams) error
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
 	AddTagToCustomer(ctx context.Context, arg AddTagToCustomerParams) error
@@ -19,12 +20,16 @@ type Querier interface {
 	// before SetNewVersion overwrites them.
 	ArchiveCurrentVersion(ctx context.Context, arg ArchiveCurrentVersionParams) error
 	ArchiveCustomer(ctx context.Context, arg ArchiveCustomerParams) (Customer, error)
+	ArriveInspection(ctx context.Context, arg ArriveInspectionParams) (Inspection, error)
 	AssignAccountOwner(ctx context.Context, arg AssignAccountOwnerParams) (Customer, error)
 	AssignTender(ctx context.Context, arg AssignTenderParams) error
+	CancelInspection(ctx context.Context, arg CancelInspectionParams) (Inspection, error)
 	ClearRolePermissions(ctx context.Context, roleID uuid.UUID) error
+	ComparablePhotoCounts(ctx context.Context, tenantID uuid.UUID) ([]ComparablePhotoCountsRow, error)
 	CompleteFollowUp(ctx context.Context, arg CompleteFollowUpParams) (CustomerCommunication, error)
 	CountClients(ctx context.Context, arg CountClientsParams) (int64, error)
 	CountCommunications(ctx context.Context, arg CountCommunicationsParams) (int64, error)
+	CountComparables(ctx context.Context, arg CountComparablesParams) (int64, error)
 	CountCustomers(ctx context.Context, arg CountCustomersParams) (int64, error)
 	CountDocuments(ctx context.Context, arg CountDocumentsParams) (int64, error)
 	CountPartners(ctx context.Context, arg CountPartnersParams) (int64, error)
@@ -33,11 +38,14 @@ type Querier interface {
 	CreateBranch(ctx context.Context, arg CreateBranchParams) (PartnerBranch, error)
 	CreateClient(ctx context.Context, arg CreateClientParams) (Client, error)
 	CreateCommunication(ctx context.Context, arg CreateCommunicationParams) (CustomerCommunication, error)
+	CreateComparable(ctx context.Context, arg CreateComparableParams) (Comparable, error)
 	CreateContact(ctx context.Context, arg CreateContactParams) (Contact, error)
 	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error)
 	CreateCustomerNote(ctx context.Context, arg CreateCustomerNoteParams) (CustomerNote, error)
 	CreateDepartment(ctx context.Context, arg CreateDepartmentParams) (Department, error)
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (CompanyDocument, error)
+	CreateInspection(ctx context.Context, arg CreateInspectionParams) (Inspection, error)
+	CreateInspectionPhoto(ctx context.Context, arg CreateInspectionPhotoParams) (InspectionPhoto, error)
 	CreateOffice(ctx context.Context, arg CreateOfficeParams) (Office, error)
 	CreatePartner(ctx context.Context, arg CreatePartnerParams) (Partner, error)
 	CreatePartnerContact(ctx context.Context, arg CreatePartnerContactParams) (CreatePartnerContactRow, error)
@@ -53,11 +61,15 @@ type Querier interface {
 	DeleteBranch(ctx context.Context, arg DeleteBranchParams) error
 	DeleteClient(ctx context.Context, arg DeleteClientParams) error
 	DeleteCommunication(ctx context.Context, arg DeleteCommunicationParams) error
+	DeleteComparable(ctx context.Context, arg DeleteComparableParams) error
+	DeleteComparablePhoto(ctx context.Context, arg DeleteComparablePhotoParams) error
 	DeleteContact(ctx context.Context, arg DeleteContactParams) error
 	DeleteCustomer(ctx context.Context, arg DeleteCustomerParams) error
 	DeleteDepartment(ctx context.Context, arg DeleteDepartmentParams) error
 	// Hard delete, matching propsense (company_documents has no soft-delete columns).
 	DeleteDocument(ctx context.Context, arg DeleteDocumentParams) error
+	DeleteInspection(ctx context.Context, arg DeleteInspectionParams) error
+	DeleteInspectionPhoto(ctx context.Context, arg DeleteInspectionPhotoParams) error
 	DeleteOffice(ctx context.Context, arg DeleteOfficeParams) error
 	DeletePartner(ctx context.Context, arg DeletePartnerParams) error
 	DeletePartnerContact(ctx context.Context, arg DeletePartnerContactParams) error
@@ -67,12 +79,15 @@ type Querier interface {
 	DeleteTenderDocument(ctx context.Context, arg DeleteTenderDocumentParams) error
 	DeleteTenderLetter(ctx context.Context, arg DeleteTenderLetterParams) error
 	DeleteUser(ctx context.Context, arg DeleteUserParams) error
+	DepartInspection(ctx context.Context, arg DepartInspectionParams) (Inspection, error)
 	GetClient(ctx context.Context, arg GetClientParams) (GetClientRow, error)
 	GetCommunicationByID(ctx context.Context, arg GetCommunicationByIDParams) (CustomerCommunication, error)
+	GetComparable(ctx context.Context, arg GetComparableParams) (Comparable, error)
 	GetContactByID(ctx context.Context, arg GetContactByIDParams) (Contact, error)
 	GetCustomerByID(ctx context.Context, arg GetCustomerByIDParams) (GetCustomerByIDRow, error)
 	GetDepartment(ctx context.Context, arg GetDepartmentParams) (GetDepartmentRow, error)
 	GetDocument(ctx context.Context, arg GetDocumentParams) (CompanyDocument, error)
+	GetInspection(ctx context.Context, arg GetInspectionParams) (Inspection, error)
 	GetPartner(ctx context.Context, arg GetPartnerParams) (Partner, error)
 	GetPlatformAdminByEmail(ctx context.Context, email string) (PlatformAdmin, error)
 	GetPlatformAdminByID(ctx context.Context, id uuid.UUID) (PlatformAdmin, error)
@@ -94,6 +109,8 @@ type Querier interface {
 	ListClients(ctx context.Context, arg ListClientsParams) ([]ListClientsRow, error)
 	ListCommunications(ctx context.Context, arg ListCommunicationsParams) ([]ListCommunicationsRow, error)
 	ListCommunicationsByCustomer(ctx context.Context, customerID uuid.UUID) ([]ListCommunicationsByCustomerRow, error)
+	ListComparablePhotos(ctx context.Context, arg ListComparablePhotosParams) ([]ComparablePhoto, error)
+	ListComparables(ctx context.Context, arg ListComparablesParams) ([]Comparable, error)
 	ListContactsByCustomer(ctx context.Context, customerID uuid.UUID) ([]Contact, error)
 	// Partner contact persons. Distinct from MojaCRM's `contacts` table
 	// (Directory module, belongs to customers) — see 0006_clients_partners.up.sql.
@@ -110,6 +127,9 @@ type Querier interface {
 	// (every query takes tenant_id) since MojaCRM has no RLS.
 	ListDocuments(ctx context.Context, arg ListDocumentsParams) ([]CompanyDocument, error)
 	ListFollowUpsDue(ctx context.Context, tenantID uuid.UUID) ([]ListFollowUpsDueRow, error)
+	ListInspectionPhotosByInspection(ctx context.Context, arg ListInspectionPhotosByInspectionParams) ([]InspectionPhoto, error)
+	ListInspectionsAll(ctx context.Context, tenantID uuid.UUID) ([]ListInspectionsAllRow, error)
+	ListInspectionsByClient(ctx context.Context, arg ListInspectionsByClientParams) ([]Inspection, error)
 	ListOffices(ctx context.Context, tenantID uuid.UUID) ([]Office, error)
 	// Per-partner requirement packs. Job-level completion tracking
 	// (instruction_requirement_status in propsense) is out of scope here since
@@ -166,10 +186,13 @@ type Querier interface {
 	UpdateBranch(ctx context.Context, arg UpdateBranchParams) (PartnerBranch, error)
 	UpdateClient(ctx context.Context, arg UpdateClientParams) (Client, error)
 	UpdateCommunicationStatus(ctx context.Context, arg UpdateCommunicationStatusParams) (CustomerCommunication, error)
+	UpdateComparable(ctx context.Context, arg UpdateComparableParams) (Comparable, error)
 	UpdateContact(ctx context.Context, arg UpdateContactParams) (Contact, error)
 	UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (Customer, error)
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
 	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (CompanyDocument, error)
+	UpdateInspection(ctx context.Context, arg UpdateInspectionParams) (Inspection, error)
+	UpdateInspectionPhotoCaption(ctx context.Context, arg UpdateInspectionPhotoCaptionParams) (InspectionPhoto, error)
 	UpdateOffice(ctx context.Context, arg UpdateOfficeParams) (Office, error)
 	UpdatePartner(ctx context.Context, arg UpdatePartnerParams) (Partner, error)
 	UpdatePartnerContact(ctx context.Context, arg UpdatePartnerContactParams) (UpdatePartnerContactRow, error)

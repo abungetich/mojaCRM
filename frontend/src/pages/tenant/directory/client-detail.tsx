@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Building2, Mail, MapPin, Phone, Trash2, UsersRound } from "lucide-react"
+import { Building2, CalendarClock, FileText as FileTextIcon, Mail, MapPin, Phone, Trash2, UsersRound } from "lucide-react"
 import { useState, type ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog"
 import { PageLoader } from "@/components/ui/spinner"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ModalHeader } from "@/components/modal-header"
 import { PageHeader } from "@/components/page-header"
 import { PlaceholderPage } from "@/components/placeholder-page"
 import { ClientFormSheet } from "@/pages/tenant/directory/client-form"
+import { ClientInspectionsTab } from "@/pages/tenant/directory/client-inspections-tab"
 import { clients as clientsApi } from "@/lib/api"
 import { useAuth } from "@/lib/auth"
 import type { ClientInput } from "@/types"
@@ -117,54 +119,71 @@ export function ClientDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div className="space-y-3 rounded-lg border p-4">
-          <h3 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">Profile</h3>
-          {isCompany ? (
-            <>
-              <Field label="Company name" value={client.company_name} />
-              <Field label="Registration no." value={client.reg_number} />
-              <Field label="KRA PIN" value={client.kra_pin} />
-            </>
-          ) : (
-            <>
-              <Field
-                label="Full name"
-                value={`${client.first_name} ${client.middle_name} ${client.last_name}`.replace(/\s+/g, " ").trim()}
-              />
-              <Field
-                label={client.id_type === "passport" ? "Passport no." : "National ID no."}
-                value={client.id_number}
-              />
-              <Field
-                label="Represents company"
-                value={
-                  client.company_client_id ? (
-                    <Link to={`/clients/${client.company_client_id}`} className="text-primary hover:underline">
-                      {client.company_client_name || "View company"}
-                    </Link>
-                  ) : undefined
-                }
-              />
-            </>
-          )}
-          <Field label="Reference code" value={client.code} />
-        </div>
+      <Tabs defaultValue="overview">
+        <TabsList className="w-full max-w-full justify-start overflow-x-auto">
+          <TabsTrigger value="overview" className="shrink-0">
+            <FileTextIcon /> Overview
+          </TabsTrigger>
+          <TabsTrigger value="inspections" className="shrink-0">
+            <CalendarClock /> Inspections
+          </TabsTrigger>
+        </TabsList>
 
-        <div className="space-y-3 rounded-lg border p-4">
-          <h3 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-            Contact &amp; notes
-          </h3>
-          <Field label="Email" value={client.email} icon={Mail} />
-          <Field label="Phone" value={client.phone} icon={Phone} />
-          <Field label="Address" value={client.address} icon={MapPin} />
-          <Field label="Notes" value={client.notes} />
-          <p className="text-muted-foreground pt-2 text-xs">
-            Added {new Date(client.created_at).toLocaleDateString()}
-            {client.created_by_name ? ` by ${client.created_by_name}` : ""}
-          </p>
-        </div>
-      </div>
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="space-y-3 rounded-lg border p-4">
+              <h3 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">Profile</h3>
+              {isCompany ? (
+                <>
+                  <Field label="Company name" value={client.company_name} />
+                  <Field label="Registration no." value={client.reg_number} />
+                  <Field label="KRA PIN" value={client.kra_pin} />
+                </>
+              ) : (
+                <>
+                  <Field
+                    label="Full name"
+                    value={`${client.first_name} ${client.middle_name} ${client.last_name}`.replace(/\s+/g, " ").trim()}
+                  />
+                  <Field
+                    label={client.id_type === "passport" ? "Passport no." : "National ID no."}
+                    value={client.id_number}
+                  />
+                  <Field
+                    label="Represents company"
+                    value={
+                      client.company_client_id ? (
+                        <Link to={`/clients/${client.company_client_id}`} className="text-primary hover:underline">
+                          {client.company_client_name || "View company"}
+                        </Link>
+                      ) : undefined
+                    }
+                  />
+                </>
+              )}
+              <Field label="Reference code" value={client.code} />
+            </div>
+
+            <div className="space-y-3 rounded-lg border p-4">
+              <h3 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                Contact &amp; notes
+              </h3>
+              <Field label="Email" value={client.email} icon={Mail} />
+              <Field label="Phone" value={client.phone} icon={Phone} />
+              <Field label="Address" value={client.address} icon={MapPin} />
+              <Field label="Notes" value={client.notes} />
+              <p className="text-muted-foreground pt-2 text-xs">
+                Added {new Date(client.created_at).toLocaleDateString()}
+                {client.created_by_name ? ` by ${client.created_by_name}` : ""}
+              </p>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="inspections">
+          <ClientInspectionsTab clientId={client.id} />
+        </TabsContent>
+      </Tabs>
 
       <ClientFormSheet
         open={editOpen}

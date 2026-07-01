@@ -5,6 +5,10 @@ import type {
   Branding,
   Client,
   ClientInput,
+  Comparable,
+  ComparableInput,
+  ComparablePhoto,
+  ComparablePhotoInput,
   Communication,
   CommunicationInput,
   CompanyDocument,
@@ -20,6 +24,10 @@ import type {
   DocumentVersion,
   DocumentVersionInput,
   EmailSettingsInput,
+  Inspection,
+  InspectionInput,
+  InspectionPhoto,
+  InspectionPhotoInput,
   Office,
   OfficeInput,
   OrgProfile,
@@ -244,6 +252,62 @@ export const partners = {
         .then((r) => r.data),
     remove: (_partnerId: string, templateId: string) =>
       apiClient.delete(`/appendix-templates/${templateId}`),
+  },
+}
+
+export interface ComparableListParams {
+  page?: number
+  page_size?: number
+  q?: string
+}
+
+export const comparables = {
+  list: (params: ComparableListParams) =>
+    apiClient.get<Paginated<Comparable>>("/comparables", { params }).then((r) => r.data),
+  get: (id: string) => apiClient.get<Comparable>(`/comparables/${id}`).then((r) => r.data),
+  create: (input: ComparableInput) => apiClient.post<Comparable>("/comparables", input).then((r) => r.data),
+  update: (id: string, input: ComparableInput) =>
+    apiClient.patch<Comparable>(`/comparables/${id}`, input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/comparables/${id}`),
+  photoCounts: () => apiClient.get<Record<string, number>>("/comparables/photo-counts").then((r) => r.data),
+
+  photos: {
+    list: (comparableId: string) =>
+      apiClient.get<ComparablePhoto[]>(`/comparables/${comparableId}/photos`).then((r) => r.data),
+    add: (comparableId: string, input: ComparablePhotoInput) =>
+      apiClient.post<ComparablePhoto>(`/comparables/${comparableId}/photos`, input).then((r) => r.data),
+    remove: (_comparableId: string, photoId: string) => apiClient.delete(`/comparable-photos/${photoId}`),
+  },
+}
+
+export const inspections = {
+  // Tenant-wide feed for the Calendar page.
+  listAll: () => apiClient.get<Inspection[]>("/inspections").then((r) => r.data),
+  get: (id: string) => apiClient.get<Inspection>(`/inspections/${id}`).then((r) => r.data),
+  update: (id: string, input: InspectionInput) =>
+    apiClient.patch<Inspection>(`/inspections/${id}`, input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/inspections/${id}`),
+  arrive: (id: string, coords?: { lat: number; lng: number }) =>
+    apiClient.post<Inspection>(`/inspections/${id}/arrive`, coords ?? {}).then((r) => r.data),
+  depart: (id: string, coords?: { lat: number; lng: number }) =>
+    apiClient.post<Inspection>(`/inspections/${id}/depart`, coords ?? {}).then((r) => r.data),
+  cancel: (id: string) => apiClient.post<Inspection>(`/inspections/${id}/cancel`).then((r) => r.data),
+
+  byClient: {
+    list: (clientId: string) =>
+      apiClient.get<Inspection[]>(`/clients/${clientId}/inspections`).then((r) => r.data),
+    schedule: (clientId: string, input: InspectionInput) =>
+      apiClient.post<Inspection>(`/clients/${clientId}/inspections`, input).then((r) => r.data),
+  },
+
+  photos: {
+    list: (inspectionId: string) =>
+      apiClient.get<InspectionPhoto[]>(`/inspections/${inspectionId}/photos`).then((r) => r.data),
+    add: (inspectionId: string, input: InspectionPhotoInput) =>
+      apiClient.post<InspectionPhoto>(`/inspections/${inspectionId}/photos`, input).then((r) => r.data),
+    updateCaption: (photoId: string, caption: string) =>
+      apiClient.patch<InspectionPhoto>(`/inspection-photos/${photoId}`, { caption }).then((r) => r.data),
+    remove: (photoId: string) => apiClient.delete(`/inspection-photos/${photoId}`),
   },
 }
 

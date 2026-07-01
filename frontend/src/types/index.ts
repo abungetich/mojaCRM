@@ -441,6 +441,127 @@ export interface PartnerAppendixTemplateInput {
   sort_order?: number
 }
 
+// --- Inspections / Calendar (field visits) ---
+// A field visit scheduled against a CLIENT, ported from propsense's
+// job-scoped inspection scheduler. propsense schedules against a valuation
+// job and geofences the officer's GPS against the property captured on the
+// job's report; MojaCRM has no Instructions/jobs or report module, so this
+// is a general "site visit to a client" concept instead — arrive/depart GPS
+// is still recorded, just without a distance/geofence check.
+
+export type InspectionStatus = "scheduled" | "arrived" | "completed" | "cancelled"
+
+export interface Inspection {
+  id: string
+  client_id: string
+  client_name?: string
+  status: InspectionStatus
+  scheduled_at?: string
+  contact_name: string
+  contact_phone: string
+  notes: string
+  transport_mode: string
+  arrived_at?: string
+  arrival_lat: number
+  arrival_lng: number
+  departed_at?: string
+  departure_lat: number
+  departure_lng: number
+  created_by_name?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface InspectionInput {
+  scheduled_at?: string
+  contact_name?: string
+  contact_phone?: string
+  notes?: string
+  transport_mode?: string
+}
+
+export interface InspectionPhoto {
+  id: string
+  inspection_id: string
+  client_id: string
+  caption: string
+  data_url: string
+  lat: number
+  lng: number
+  taken_at: string
+  created_by_name?: string
+}
+
+export interface InspectionPhotoInput {
+  data_url: string
+  caption?: string
+  lat?: number
+  lng?: number
+}
+
+// --- Comparables (market evidence library) ---
+// A tenant-wide library of property sale records used as reference data —
+// not owned by any single client/partner/job, just a shared reference
+// collection any tenant user can browse and add to, ported from propsense.
+// Usage tracking (which job/report used a comparable) is out of scope: it
+// ties comparables to Instructions/Reports, neither of which exist yet.
+
+export interface Comparable {
+  id: string
+  parcel_ref: string
+  size: string
+  location: string
+  comp_date: string
+  land_user: string
+  value: string
+  value_amount: number
+  value_date?: string
+  source: string
+  county: string
+  notes: string
+  lat: number
+  lng: number
+  contact_phone: string
+  done_by: string
+  created_by_name?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ComparableInput {
+  parcel_ref?: string
+  size?: string
+  location?: string
+  comp_date?: string
+  land_user?: string
+  value?: string
+  value_amount?: number
+  value_date?: string
+  source?: string
+  county?: string
+  notes?: string
+  lat?: number
+  lng?: number
+  contact_phone?: string
+  done_by?: string
+}
+
+// A photo_url is a plain link (no file-upload infra yet), matching how
+// Partner.logo_url and CompanyDocument.file_url were ported.
+export interface ComparablePhoto {
+  id: string
+  comparable_id: string
+  photo_url: string
+  caption: string
+  created_by_name?: string
+  created_at: string
+}
+
+export interface ComparablePhotoInput {
+  photo_url: string
+  caption?: string
+}
+
 // --- Document Vault ---
 // A company-wide document repository (staff manual, templates, policies),
 // with expiry tracking and version history. propsense stores the uploaded

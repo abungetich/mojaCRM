@@ -62,6 +62,42 @@ type CompanyDocument struct {
 	UpdatedAt       time.Time   `json:"updated_at"`
 }
 
+type Comparable struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	ParcelRef     string             `json:"parcel_ref"`
+	Size          string             `json:"size"`
+	Location      string             `json:"location"`
+	CompDate      string             `json:"comp_date"`
+	LandUser      string             `json:"land_user"`
+	Value         string             `json:"value"`
+	ValueAmount   int64              `json:"value_amount"`
+	ValueDate     string             `json:"value_date"`
+	Source        string             `json:"source"`
+	County        string             `json:"county"`
+	Notes         string             `json:"notes"`
+	Lat           float64            `json:"lat"`
+	Lng           float64            `json:"lng"`
+	ContactPhone  string             `json:"contact_phone"`
+	DoneBy        string             `json:"done_by"`
+	CreatedByName string             `json:"created_by_name"`
+	CreatedAt     time.Time          `json:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+	DeletedByName string             `json:"deleted_by_name"`
+	DeleteReason  string             `json:"delete_reason"`
+}
+
+type ComparablePhoto struct {
+	ID            uuid.UUID `json:"id"`
+	TenantID      uuid.UUID `json:"tenant_id"`
+	ComparableID  uuid.UUID `json:"comparable_id"`
+	PhotoUrl      string    `json:"photo_url"`
+	Caption       string    `json:"caption"`
+	CreatedByName string    `json:"created_by_name"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
 type Contact struct {
 	ID                      uuid.UUID `json:"id"`
 	TenantID                uuid.UUID `json:"tenant_id"`
@@ -184,6 +220,41 @@ type DocumentVersion struct {
 	ExpiryDate    pgtype.Date `json:"expiry_date"`
 	CreatedByName string      `json:"created_by_name"`
 	ArchivedAt    time.Time   `json:"archived_at"`
+}
+
+type Inspection struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	ClientID      uuid.UUID          `json:"client_id"`
+	Status        string             `json:"status"`
+	ScheduledAt   pgtype.Timestamptz `json:"scheduled_at"`
+	ContactName   string             `json:"contact_name"`
+	ContactPhone  string             `json:"contact_phone"`
+	Notes         string             `json:"notes"`
+	TransportMode string             `json:"transport_mode"`
+	ArrivedAt     pgtype.Timestamptz `json:"arrived_at"`
+	ArrivalLat    float64            `json:"arrival_lat"`
+	ArrivalLng    float64            `json:"arrival_lng"`
+	DepartedAt    pgtype.Timestamptz `json:"departed_at"`
+	DepartureLat  float64            `json:"departure_lat"`
+	DepartureLng  float64            `json:"departure_lng"`
+	CreatedByName string             `json:"created_by_name"`
+	CreatedAt     time.Time          `json:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"`
+}
+
+type InspectionPhoto struct {
+	ID            uuid.UUID `json:"id"`
+	TenantID      uuid.UUID `json:"tenant_id"`
+	ClientID      uuid.UUID `json:"client_id"`
+	InspectionID  uuid.UUID `json:"inspection_id"`
+	Caption       string    `json:"caption"`
+	DataUrl       string    `json:"data_url"`
+	Lat           float64   `json:"lat"`
+	Lng           float64   `json:"lng"`
+	TakenAt       time.Time `json:"taken_at"`
+	CreatedByName string    `json:"created_by_name"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 type Office struct {

@@ -25,6 +25,8 @@ import { PartnerDetailPage } from "@/pages/tenant/directory/partner-detail"
 import { DocumentsVaultPage } from "@/pages/tenant/documents-vault"
 import { TendersListPage } from "@/pages/tenant/tenders-list"
 import { TenderDetailPage } from "@/pages/tenant/tender-detail"
+import { ComparablesListPage } from "@/pages/tenant/comparables-list"
+import { CalendarPage } from "@/pages/tenant/calendar"
 
 export default function App() {
   return (
@@ -45,6 +47,8 @@ export default function App() {
         <Route path="/documents" element={<DocumentsVaultPage />} />
         <Route path="/tenders" element={<TendersListPage />} />
         <Route path="/tenders/:id" element={<TenderDetailPage />} />
+        <Route path="/comparables" element={<ComparablesListPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/communications" element={<CommunicationsCenterPage />} />
         <Route path="/pipeline" element={<PipelinePage />} />
         <Route path="/tasks" element={<TasksPage />} />

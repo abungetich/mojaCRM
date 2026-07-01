@@ -56,6 +56,8 @@ func New(cfg config.Config, store *database.Store, jobsClient *asynq.Client) htt
 	officesH := handlers.NewOfficeHandler(deps)
 	referenceDataH := handlers.NewReferenceDataHandler(deps)
 	archiveH := handlers.NewArchiveHandler(deps)
+	comparablesH := handlers.NewComparableHandler(deps)
+	inspectionsH := handlers.NewInspectionHandler(deps)
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
@@ -208,6 +210,30 @@ func New(cfg config.Config, store *database.Store, jobsClient *asynq.Client) htt
 			r.With(mw.RequirePermission("archive:read")).Get("/archive", archiveH.List)
 			r.With(mw.RequirePermission("archive:write")).Post("/archive/restore", archiveH.Restore)
 			r.With(mw.RequirePermission("archive:write")).Post("/archive/purge", archiveH.Purge)
+
+			r.With(mw.RequirePermission("comparables:read")).Get("/comparables", comparablesH.List)
+			r.With(mw.RequirePermission("comparables:read")).Get("/comparables/photo-counts", comparablesH.PhotoCounts)
+			r.With(mw.RequirePermission("comparables:read")).Get("/comparables/{id}", comparablesH.Get)
+			r.With(mw.RequirePermission("comparables:write")).Post("/comparables", comparablesH.Create)
+			r.With(mw.RequirePermission("comparables:write")).Patch("/comparables/{id}", comparablesH.Update)
+			r.With(mw.RequirePermission("comparables:write")).Delete("/comparables/{id}", comparablesH.Delete)
+			r.With(mw.RequirePermission("comparables:read")).Get("/comparables/{id}/photos", comparablesH.ListPhotos)
+			r.With(mw.RequirePermission("comparables:write")).Post("/comparables/{id}/photos", comparablesH.AddPhoto)
+			r.With(mw.RequirePermission("comparables:write")).Delete("/comparable-photos/{photoId}", comparablesH.DeletePhoto)
+
+			r.With(mw.RequirePermission("inspections:read")).Get("/clients/{id}/inspections", inspectionsH.ListByClient)
+			r.With(mw.RequirePermission("inspections:write")).Post("/clients/{id}/inspections", inspectionsH.Schedule)
+			r.With(mw.RequirePermission("inspections:read")).Get("/inspections", inspectionsH.ListAll)
+			r.With(mw.RequirePermission("inspections:read")).Get("/inspections/{id}", inspectionsH.Get)
+			r.With(mw.RequirePermission("inspections:write")).Patch("/inspections/{id}", inspectionsH.Update)
+			r.With(mw.RequirePermission("inspections:write")).Delete("/inspections/{id}", inspectionsH.Delete)
+			r.With(mw.RequirePermission("inspections:write")).Post("/inspections/{id}/arrive", inspectionsH.Arrive)
+			r.With(mw.RequirePermission("inspections:write")).Post("/inspections/{id}/depart", inspectionsH.Depart)
+			r.With(mw.RequirePermission("inspections:write")).Post("/inspections/{id}/cancel", inspectionsH.Cancel)
+			r.With(mw.RequirePermission("inspections:read")).Get("/inspections/{id}/photos", inspectionsH.ListPhotos)
+			r.With(mw.RequirePermission("inspections:write")).Post("/inspections/{id}/photos", inspectionsH.AddPhoto)
+			r.With(mw.RequirePermission("inspections:write")).Patch("/inspection-photos/{id}", inspectionsH.UpdatePhotoCaption)
+			r.With(mw.RequirePermission("inspections:write")).Delete("/inspection-photos/{id}", inspectionsH.DeletePhoto)
 		})
 
 		r.Group(func(r chi.Router) {

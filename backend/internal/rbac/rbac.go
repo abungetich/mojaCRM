@@ -24,6 +24,8 @@ var AllPermissions = []string{
 	"tenders:read", "tenders:write",
 	"departments:read", "departments:write",
 	"archive:read", "archive:write",
+	"comparables:read", "comparables:write",
+	"inspections:read", "inspections:write",
 }
 
 // AdminPermissions is granted to the Admin system role. (Owner always gets
@@ -42,6 +44,8 @@ var AdminPermissions = []string{
 	"tenders:read", "tenders:write",
 	"departments:read", "departments:write",
 	"archive:read", "archive:write",
+	"comparables:read", "comparables:write",
+	"inspections:read", "inspections:write",
 }
 
 // MemberPermissions is granted to the Member system role.
@@ -56,4 +60,6 @@ var MemberPermissions = []string{
 	"documents:read", "documents:write",
 	"tenders:read", "tenders:write",
 	"departments:read",
+	"comparables:read", "comparables:write",
+	"inspections:read", "inspections:write",
 }
