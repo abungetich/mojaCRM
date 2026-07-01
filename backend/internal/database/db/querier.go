@@ -11,16 +11,24 @@ import (
 )
 
 type Querier interface {
+	AddDepartmentMember(ctx context.Context, arg AddDepartmentMemberParams) error
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
 	AddTagToCustomer(ctx context.Context, arg AddTagToCustomerParams) error
+	AddTenderDocument(ctx context.Context, arg AddTenderDocumentParams) (uuid.UUID, error)
+	// Snapshot the document's current file + dates into the version history,
+	// before SetNewVersion overwrites them.
+	ArchiveCurrentVersion(ctx context.Context, arg ArchiveCurrentVersionParams) error
 	ArchiveCustomer(ctx context.Context, arg ArchiveCustomerParams) (Customer, error)
 	AssignAccountOwner(ctx context.Context, arg AssignAccountOwnerParams) (Customer, error)
+	AssignTender(ctx context.Context, arg AssignTenderParams) error
 	ClearRolePermissions(ctx context.Context, roleID uuid.UUID) error
 	CompleteFollowUp(ctx context.Context, arg CompleteFollowUpParams) (CustomerCommunication, error)
 	CountClients(ctx context.Context, arg CountClientsParams) (int64, error)
 	CountCommunications(ctx context.Context, arg CountCommunicationsParams) (int64, error)
 	CountCustomers(ctx context.Context, arg CountCustomersParams) (int64, error)
+	CountDocuments(ctx context.Context, arg CountDocumentsParams) (int64, error)
 	CountPartners(ctx context.Context, arg CountPartnersParams) (int64, error)
+	CountTenders(ctx context.Context, arg CountTendersParams) (int64, error)
 	CreateAppendixTemplate(ctx context.Context, arg CreateAppendixTemplateParams) (PartnerAppendixTemplate, error)
 	CreateBranch(ctx context.Context, arg CreateBranchParams) (PartnerBranch, error)
 	CreateClient(ctx context.Context, arg CreateClientParams) (Client, error)
@@ -28,12 +36,18 @@ type Querier interface {
 	CreateContact(ctx context.Context, arg CreateContactParams) (Contact, error)
 	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error)
 	CreateCustomerNote(ctx context.Context, arg CreateCustomerNoteParams) (CustomerNote, error)
+	CreateDepartment(ctx context.Context, arg CreateDepartmentParams) (Department, error)
+	CreateDocument(ctx context.Context, arg CreateDocumentParams) (CompanyDocument, error)
+	CreateOffice(ctx context.Context, arg CreateOfficeParams) (Office, error)
 	CreatePartner(ctx context.Context, arg CreatePartnerParams) (Partner, error)
 	CreatePartnerContact(ctx context.Context, arg CreatePartnerContactParams) (CreatePartnerContactRow, error)
 	CreatePartnerRequirement(ctx context.Context, arg CreatePartnerRequirementParams) (PartnerRequirement, error)
 	CreatePlatformAdmin(ctx context.Context, arg CreatePlatformAdminParams) (PlatformAdmin, error)
+	CreateReferenceData(ctx context.Context, arg CreateReferenceDataParams) (ReferenceDatum, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateTenant(ctx context.Context, arg CreateTenantParams) (Tenant, error)
+	CreateTender(ctx context.Context, arg CreateTenderParams) (Tender, error)
+	CreateTenderLetter(ctx context.Context, arg CreateTenderLetterParams) (uuid.UUID, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAppendixTemplate(ctx context.Context, arg DeleteAppendixTemplateParams) error
 	DeleteBranch(ctx context.Context, arg DeleteBranchParams) error
@@ -41,14 +55,24 @@ type Querier interface {
 	DeleteCommunication(ctx context.Context, arg DeleteCommunicationParams) error
 	DeleteContact(ctx context.Context, arg DeleteContactParams) error
 	DeleteCustomer(ctx context.Context, arg DeleteCustomerParams) error
+	DeleteDepartment(ctx context.Context, arg DeleteDepartmentParams) error
+	// Hard delete, matching propsense (company_documents has no soft-delete columns).
+	DeleteDocument(ctx context.Context, arg DeleteDocumentParams) error
+	DeleteOffice(ctx context.Context, arg DeleteOfficeParams) error
 	DeletePartner(ctx context.Context, arg DeletePartnerParams) error
 	DeletePartnerContact(ctx context.Context, arg DeletePartnerContactParams) error
 	DeletePartnerRequirement(ctx context.Context, arg DeletePartnerRequirementParams) error
+	DeleteReferenceData(ctx context.Context, arg DeleteReferenceDataParams) error
+	DeleteTender(ctx context.Context, arg DeleteTenderParams) error
+	DeleteTenderDocument(ctx context.Context, arg DeleteTenderDocumentParams) error
+	DeleteTenderLetter(ctx context.Context, arg DeleteTenderLetterParams) error
 	DeleteUser(ctx context.Context, arg DeleteUserParams) error
 	GetClient(ctx context.Context, arg GetClientParams) (GetClientRow, error)
 	GetCommunicationByID(ctx context.Context, arg GetCommunicationByIDParams) (CustomerCommunication, error)
 	GetContactByID(ctx context.Context, arg GetContactByIDParams) (Contact, error)
 	GetCustomerByID(ctx context.Context, arg GetCustomerByIDParams) (GetCustomerByIDRow, error)
+	GetDepartment(ctx context.Context, arg GetDepartmentParams) (GetDepartmentRow, error)
+	GetDocument(ctx context.Context, arg GetDocumentParams) (CompanyDocument, error)
 	GetPartner(ctx context.Context, arg GetPartnerParams) (Partner, error)
 	GetPlatformAdminByEmail(ctx context.Context, email string) (PlatformAdmin, error)
 	GetPlatformAdminByID(ctx context.Context, id uuid.UUID) (PlatformAdmin, error)
@@ -56,6 +80,8 @@ type Querier interface {
 	GetRoleByID(ctx context.Context, arg GetRoleByIDParams) (Role, error)
 	GetTenantByID(ctx context.Context, id uuid.UUID) (Tenant, error)
 	GetTenantBySlug(ctx context.Context, slug string) (Tenant, error)
+	GetTender(ctx context.Context, arg GetTenderParams) (GetTenderRow, error)
+	GetTenderDocument(ctx context.Context, arg GetTenderDocumentParams) (GetTenderDocumentRow, error)
 	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (User, error)
 	GetUserByEmailAnyTenant(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
@@ -63,6 +89,7 @@ type Querier interface {
 	GetUserPermissionKeys(ctx context.Context, id uuid.UUID) ([]string, error)
 	GetUserWithRoleByID(ctx context.Context, id uuid.UUID) (GetUserWithRoleByIDRow, error)
 	ListAppendixTemplatesForPartner(ctx context.Context, arg ListAppendixTemplatesForPartnerParams) ([]PartnerAppendixTemplate, error)
+	ListArchived(ctx context.Context, dollar_1 uuid.UUID) ([]ListArchivedRow, error)
 	ListBranchesByPartner(ctx context.Context, arg ListBranchesByPartnerParams) ([]PartnerBranch, error)
 	ListClients(ctx context.Context, arg ListClientsParams) ([]ListClientsRow, error)
 	ListCommunications(ctx context.Context, arg ListCommunicationsParams) ([]ListCommunicationsRow, error)
@@ -75,7 +102,15 @@ type Querier interface {
 	ListCustomerNotes(ctx context.Context, customerID uuid.UUID) ([]ListCustomerNotesRow, error)
 	ListCustomerTags(ctx context.Context, customerID uuid.UUID) ([]Tag, error)
 	ListCustomers(ctx context.Context, arg ListCustomersParams) ([]ListCustomersRow, error)
+	ListDepartmentMembers(ctx context.Context, departmentID uuid.UUID) ([]ListDepartmentMembersRow, error)
+	ListDepartments(ctx context.Context, tenantID uuid.UUID) ([]ListDepartmentsRow, error)
+	ListDocumentVersions(ctx context.Context, arg ListDocumentVersionsParams) ([]DocumentVersion, error)
+	// Document Vault: company-wide/staff documents + their version history.
+	// ported from propsense's company_documents.sql; tenant scoping is explicit
+	// (every query takes tenant_id) since MojaCRM has no RLS.
+	ListDocuments(ctx context.Context, arg ListDocumentsParams) ([]CompanyDocument, error)
 	ListFollowUpsDue(ctx context.Context, tenantID uuid.UUID) ([]ListFollowUpsDueRow, error)
+	ListOffices(ctx context.Context, tenantID uuid.UUID) ([]Office, error)
 	// Per-partner requirement packs. Job-level completion tracking
 	// (instruction_requirement_status in propsense) is out of scope here since
 	// MojaCRM has no `instructions` table yet — see 0006_clients_partners.up.sql.
@@ -83,19 +118,48 @@ type Querier interface {
 	ListPartners(ctx context.Context, arg ListPartnersParams) ([]Partner, error)
 	ListPermissions(ctx context.Context) ([]Permission, error)
 	ListPlatformAdmins(ctx context.Context) ([]PlatformAdmin, error)
+	ListReferenceData(ctx context.Context, tenantID uuid.UUID) ([]ReferenceDatum, error)
+	ListReferenceDataByCategory(ctx context.Context, arg ListReferenceDataByCategoryParams) ([]ReferenceDatum, error)
 	ListRolePermissionKeys(ctx context.Context, roleID uuid.UUID) ([]string, error)
 	ListRolesByTenant(ctx context.Context, tenantID uuid.UUID) ([]Role, error)
 	ListTags(ctx context.Context, tenantID uuid.UUID) ([]Tag, error)
 	ListTenants(ctx context.Context) ([]Tenant, error)
+	// ---- Documents ----
+	ListTenderDocuments(ctx context.Context, arg ListTenderDocumentsParams) ([]ListTenderDocumentsRow, error)
+	// ---- Letter templates ----
+	ListTenderLetters(ctx context.Context, tenantID uuid.UUID) ([]ListTenderLettersRow, error)
+	// Tenders & Pre-Qualification, ported from propsense (waterboy backend).
+	// propsense scopes rows via Postgres RLS + current_tenant_id(); MojaCRM has
+	// no RLS, so every query takes an explicit tenant_id (see clients.sql).
+	ListTenders(ctx context.Context, arg ListTendersParams) ([]ListTendersRow, error)
 	ListUsersWithRole(ctx context.Context, tenantID uuid.UUID) ([]ListUsersWithRoleRow, error)
 	MarkUserVerified(ctx context.Context, id uuid.UUID) (User, error)
+	PurgeBranch(ctx context.Context, arg PurgeBranchParams) error
+	PurgeClient(ctx context.Context, arg PurgeClientParams) error
+	PurgeDepartment(ctx context.Context, arg PurgeDepartmentParams) error
+	PurgeOffice(ctx context.Context, arg PurgeOfficeParams) error
+	PurgePartner(ctx context.Context, arg PurgePartnerParams) error
+	PurgePartnerContact(ctx context.Context, arg PurgePartnerContactParams) error
+	PurgeTender(ctx context.Context, arg PurgeTenderParams) error
+	RemoveDepartmentMember(ctx context.Context, arg RemoveDepartmentMemberParams) error
 	RemoveTagFromCustomer(ctx context.Context, arg RemoveTagFromCustomerParams) error
+	RestoreBranch(ctx context.Context, arg RestoreBranchParams) error
+	RestoreClient(ctx context.Context, arg RestoreClientParams) error
 	RestoreCustomer(ctx context.Context, arg RestoreCustomerParams) (Customer, error)
+	RestoreDepartment(ctx context.Context, arg RestoreDepartmentParams) error
+	RestoreOffice(ctx context.Context, arg RestoreOfficeParams) error
+	RestorePartner(ctx context.Context, arg RestorePartnerParams) error
+	RestorePartnerContact(ctx context.Context, arg RestorePartnerContactParams) error
+	RestoreTender(ctx context.Context, arg RestoreTenderParams) error
 	SetContactPrimary(ctx context.Context, arg SetContactPrimaryParams) (Contact, error)
 	SetContactStatus(ctx context.Context, arg SetContactStatusParams) (Contact, error)
 	SetCustomerStatus(ctx context.Context, arg SetCustomerStatusParams) (Customer, error)
+	// Replace the current file + dates with a new version and bump the version number.
+	SetNewVersion(ctx context.Context, arg SetNewVersionParams) (CompanyDocument, error)
 	SetPartnerComparableRules(ctx context.Context, arg SetPartnerComparableRulesParams) error
 	SetTenantStatus(ctx context.Context, arg SetTenantStatusParams) (Tenant, error)
+	SetTenderStage(ctx context.Context, arg SetTenderStageParams) error
+	SetTenderSubmission(ctx context.Context, arg SetTenderSubmissionParams) error
 	SetVerificationToken(ctx context.Context, arg SetVerificationTokenParams) error
 	UnsetPrimaryContacts(ctx context.Context, customerID uuid.UUID) error
 	UpdateAppendixTemplate(ctx context.Context, arg UpdateAppendixTemplateParams) (PartnerAppendixTemplate, error)
@@ -104,10 +168,17 @@ type Querier interface {
 	UpdateCommunicationStatus(ctx context.Context, arg UpdateCommunicationStatusParams) (CustomerCommunication, error)
 	UpdateContact(ctx context.Context, arg UpdateContactParams) (Contact, error)
 	UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) (Customer, error)
+	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
+	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (CompanyDocument, error)
+	UpdateOffice(ctx context.Context, arg UpdateOfficeParams) (Office, error)
 	UpdatePartner(ctx context.Context, arg UpdatePartnerParams) (Partner, error)
 	UpdatePartnerContact(ctx context.Context, arg UpdatePartnerContactParams) (UpdatePartnerContactRow, error)
 	UpdatePartnerRequirement(ctx context.Context, arg UpdatePartnerRequirementParams) error
 	UpdatePlatformSettings(ctx context.Context, arg UpdatePlatformSettingsParams) (PlatformSetting, error)
+	UpdateTenantEmailSettings(ctx context.Context, arg UpdateTenantEmailSettingsParams) (Tenant, error)
+	UpdateTenantProfile(ctx context.Context, arg UpdateTenantProfileParams) (Tenant, error)
+	UpdateTender(ctx context.Context, arg UpdateTenderParams) (Tender, error)
+	UpdateTenderLetter(ctx context.Context, arg UpdateTenderLetterParams) error
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 	UpsertTag(ctx context.Context, arg UpsertTagParams) (Tag, error)

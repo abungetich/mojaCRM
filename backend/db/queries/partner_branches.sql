@@ -21,3 +21,10 @@ RETURNING *;
 -- name: DeleteBranch :exec
 UPDATE partner_branches SET deleted_at = now(), deleted_by_name = $3, delete_reason = $4
 WHERE id = $1 AND tenant_id = $2;
+
+-- name: RestoreBranch :exec
+UPDATE partner_branches SET deleted_at = NULL, deleted_by_name = '', delete_reason = ''
+WHERE id = $1 AND tenant_id = $2;
+
+-- name: PurgeBranch :exec
+DELETE FROM partner_branches WHERE id = $1 AND tenant_id = $2;

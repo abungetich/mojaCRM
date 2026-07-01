@@ -123,6 +123,35 @@ func (q *Queries) ListBranchesByPartner(ctx context.Context, arg ListBranchesByP
 	return items, nil
 }
 
+const purgeBranch = `-- name: PurgeBranch :exec
+DELETE FROM partner_branches WHERE id = $1 AND tenant_id = $2
+`
+
+type PurgeBranchParams struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+}
+
+func (q *Queries) PurgeBranch(ctx context.Context, arg PurgeBranchParams) error {
+	_, err := q.db.Exec(ctx, purgeBranch, arg.ID, arg.TenantID)
+	return err
+}
+
+const restoreBranch = `-- name: RestoreBranch :exec
+UPDATE partner_branches SET deleted_at = NULL, deleted_by_name = '', delete_reason = ''
+WHERE id = $1 AND tenant_id = $2
+`
+
+type RestoreBranchParams struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+}
+
+func (q *Queries) RestoreBranch(ctx context.Context, arg RestoreBranchParams) error {
+	_, err := q.db.Exec(ctx, restoreBranch, arg.ID, arg.TenantID)
+	return err
+}
+
 const updateBranch = `-- name: UpdateBranch :one
 UPDATE partner_branches SET
     name = $3,

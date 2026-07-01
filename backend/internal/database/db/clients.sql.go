@@ -325,6 +325,35 @@ func (q *Queries) ListClients(ctx context.Context, arg ListClientsParams) ([]Lis
 	return items, nil
 }
 
+const purgeClient = `-- name: PurgeClient :exec
+DELETE FROM clients WHERE id = $1 AND tenant_id = $2
+`
+
+type PurgeClientParams struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+}
+
+func (q *Queries) PurgeClient(ctx context.Context, arg PurgeClientParams) error {
+	_, err := q.db.Exec(ctx, purgeClient, arg.ID, arg.TenantID)
+	return err
+}
+
+const restoreClient = `-- name: RestoreClient :exec
+UPDATE clients SET deleted_at = NULL, deleted_by_name = '', delete_reason = ''
+WHERE id = $1 AND tenant_id = $2
+`
+
+type RestoreClientParams struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+}
+
+func (q *Queries) RestoreClient(ctx context.Context, arg RestoreClientParams) error {
+	_, err := q.db.Exec(ctx, restoreClient, arg.ID, arg.TenantID)
+	return err
+}
+
 const updateClient = `-- name: UpdateClient :one
 UPDATE clients SET
     client_type = $3,

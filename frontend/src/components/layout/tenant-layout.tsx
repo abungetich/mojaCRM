@@ -1,6 +1,8 @@
 import {
   BookUser,
   Building2,
+  FileText,
+  Gavel,
   Handshake,
   Inbox,
   KanbanSquare,
@@ -44,6 +46,7 @@ export function TenantLayout() {
         item("Directory", BookUser, "/customers", "customers:read"),
         item("Clients", Building2, "/clients", "clients:read"),
         item("Partners", Handshake, "/partners", "partners:read"),
+        item("Tenders", Gavel, "/tenders", "tenders:read"),
         item("Communications", Inbox, "/communications", "communications:read"),
         item("Pipeline", KanbanSquare, "/pipeline", "deals:read"),
         item("Tasks", ListTodo, "/tasks", "tasks:read"),
@@ -54,6 +57,7 @@ export function TenantLayout() {
       items: [
         { ...item("Users", UsersIcon, "/users"), _show: hasPermission("users:read") },
         { ...item("Roles & Permissions", ShieldCheck, "/roles"), _show: hasPermission("roles:read") },
+        item("Document Vault", FileText, "/documents", "documents:read"),
         { ...item("Settings", Settings, "/settings"), _show: canSeeSettings },
       ].filter((i) => i._show),
     },

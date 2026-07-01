@@ -81,3 +81,10 @@ WHERE id = $1 AND tenant_id = $2;
 -- name: DeletePartner :exec
 UPDATE partners SET deleted_at = now(), deleted_by_name = $3, delete_reason = $4
 WHERE id = $1 AND tenant_id = $2;
+
+-- name: RestorePartner :exec
+UPDATE partners SET deleted_at = NULL, deleted_by_name = '', delete_reason = ''
+WHERE id = $1 AND tenant_id = $2;
+
+-- name: PurgePartner :exec
+DELETE FROM partners WHERE id = $1 AND tenant_id = $2;

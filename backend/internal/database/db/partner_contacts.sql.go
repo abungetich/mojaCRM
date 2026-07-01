@@ -190,6 +190,35 @@ func (q *Queries) ListContactsByPartner(ctx context.Context, arg ListContactsByP
 	return items, nil
 }
 
+const purgePartnerContact = `-- name: PurgePartnerContact :exec
+DELETE FROM partner_contacts WHERE id = $1 AND tenant_id = $2
+`
+
+type PurgePartnerContactParams struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+}
+
+func (q *Queries) PurgePartnerContact(ctx context.Context, arg PurgePartnerContactParams) error {
+	_, err := q.db.Exec(ctx, purgePartnerContact, arg.ID, arg.TenantID)
+	return err
+}
+
+const restorePartnerContact = `-- name: RestorePartnerContact :exec
+UPDATE partner_contacts SET deleted_at = NULL, deleted_by_name = '', delete_reason = ''
+WHERE id = $1 AND tenant_id = $2
+`
+
+type RestorePartnerContactParams struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+}
+
+func (q *Queries) RestorePartnerContact(ctx context.Context, arg RestorePartnerContactParams) error {
+	_, err := q.db.Exec(ctx, restorePartnerContact, arg.ID, arg.TenantID)
+	return err
+}
+
 const updatePartnerContact = `-- name: UpdatePartnerContact :one
 UPDATE partner_contacts SET
     first_name = $3,

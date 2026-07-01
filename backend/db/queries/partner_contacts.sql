@@ -43,3 +43,10 @@ RETURNING id, tenant_id, partner_id, first_name, middle_name, last_name, title,
 -- name: DeletePartnerContact :exec
 UPDATE partner_contacts SET deleted_at = now(), deleted_by_name = $3, delete_reason = $4
 WHERE id = $1 AND tenant_id = $2;
+
+-- name: RestorePartnerContact :exec
+UPDATE partner_contacts SET deleted_at = NULL, deleted_by_name = '', delete_reason = ''
+WHERE id = $1 AND tenant_id = $2;
+
+-- name: PurgePartnerContact :exec
+DELETE FROM partner_contacts WHERE id = $1 AND tenant_id = $2;

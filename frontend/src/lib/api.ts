@@ -1,15 +1,29 @@
 import { apiClient } from "@/lib/api-client"
 import type {
+  ArchivedItem,
+  Billing as BillingType,
   Branding,
   Client,
   ClientInput,
   Communication,
   CommunicationInput,
+  CompanyDocument,
   Contact,
   ContactInput,
   Customer,
   CustomerInput,
   CustomerNote,
+  Department,
+  DepartmentInput,
+  DepartmentMember,
+  DocumentInput,
+  DocumentVersion,
+  DocumentVersionInput,
+  EmailSettingsInput,
+  Office,
+  OfficeInput,
+  OrgProfile,
+  OrgProfileInput,
   Paginated,
   Partner,
   PartnerAppendixTemplate,
@@ -18,14 +32,24 @@ import type {
   PartnerBranchInput,
   PartnerContact,
   PartnerContactInput,
+  PartnerComparableRulesInput,
   PartnerInput,
   PartnerRequirement,
   PartnerRequirementInput,
   Permission,
+  ReferenceDataInput,
+  ReferenceDataItem,
   Role,
   Session,
   SignupResult,
   Tag,
+  Tender,
+  TenderDocument,
+  TenderDocumentInput,
+  TenderInput,
+  TenderLetter,
+  TenderLetterInput,
+  TenderListRow,
   Tenant,
   User,
 } from "@/types"
@@ -167,6 +191,8 @@ export const partners = {
   update: (id: string, input: PartnerInput) =>
     apiClient.patch<Partner>(`/partners/${id}`, input).then((r) => r.data),
   remove: (id: string) => apiClient.delete(`/partners/${id}`),
+  setComparableRules: (id: string, input: PartnerComparableRulesInput) =>
+    apiClient.patch<Partner>(`/partners/${id}/comparable-rules`, input).then((r) => r.data),
 
   branches: {
     list: (partnerId: string) =>
@@ -221,6 +247,79 @@ export const partners = {
   },
 }
 
+export interface DocumentListParams {
+  page?: number
+  page_size?: number
+  category?: string
+  q?: string
+}
+
+export const documents = {
+  list: (params: DocumentListParams) =>
+    apiClient.get<Paginated<CompanyDocument>>("/documents", { params }).then((r) => r.data),
+  get: (id: string) => apiClient.get<CompanyDocument>(`/documents/${id}`).then((r) => r.data),
+  create: (input: DocumentInput) => apiClient.post<CompanyDocument>("/documents", input).then((r) => r.data),
+  update: (id: string, input: DocumentInput) =>
+    apiClient.patch<CompanyDocument>(`/documents/${id}`, input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/documents/${id}`),
+
+  versions: {
+    list: (documentId: string) =>
+      apiClient.get<DocumentVersion[]>(`/documents/${documentId}/versions`).then((r) => r.data),
+    add: (documentId: string, input: DocumentVersionInput) =>
+      apiClient.post<CompanyDocument>(`/documents/${documentId}/versions`, input).then((r) => r.data),
+  },
+}
+
+export interface TenderListParams {
+  page?: number
+  page_size?: number
+  stage?: string
+  q?: string
+}
+
+export const tenders = {
+  list: (params: TenderListParams) =>
+    apiClient.get<Paginated<TenderListRow>>("/tenders", { params }).then((r) => r.data),
+  get: (id: string) => apiClient.get<Tender>(`/tenders/${id}`).then((r) => r.data),
+  create: (input: TenderInput) => apiClient.post<Tender>("/tenders", input).then((r) => r.data),
+  update: (id: string, input: TenderInput) =>
+    apiClient.patch<Tender>(`/tenders/${id}`, input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/tenders/${id}`),
+  setStage: (id: string, stage: string, note?: string, outcomeNote?: string) =>
+    apiClient
+      .post(`/tenders/${id}/stage`, { stage, note, outcome_note: outcomeNote })
+      .then((r) => r.data),
+  assign: (id: string, ownerUserId: string) =>
+    apiClient.post(`/tenders/${id}/assign`, { owner_user_id: ownerUserId }).then((r) => r.data),
+  submit: (id: string, input: { submitted_on?: string; method?: string; reference?: string; note?: string }) =>
+    apiClient.post(`/tenders/${id}/submit`, input).then((r) => r.data),
+
+  documents: {
+    list: (tenderId: string) =>
+      apiClient.get<TenderDocument[]>(`/tenders/${tenderId}/documents`).then((r) => r.data),
+    get: (_tenderId: string, docId: string) =>
+      apiClient.get<{ data_url: string; name: string }>(`/tender-documents/${docId}`).then((r) => r.data),
+    add: (tenderId: string, input: TenderDocumentInput) =>
+      apiClient.post<{ id: string }>(`/tenders/${tenderId}/documents`, input).then((r) => r.data),
+    remove: (_tenderId: string, docId: string) => apiClient.delete(`/tender-documents/${docId}`),
+  },
+
+  // Client-generated PDFs (dossier / letter) emailed as an attachment.
+  // Currently returns 501 — MojaCRM has no mailer configured yet.
+  email: (id: string, input: { to: string; cc?: string; subject?: string; message?: string; file_name: string; data_url: string }) =>
+    apiClient.post(`/tenders/${id}/email`, input).then((r) => r.data),
+
+  letters: {
+    list: () => apiClient.get<TenderLetter[]>("/tender-letters").then((r) => r.data),
+    create: (input: TenderLetterInput) =>
+      apiClient.post<{ id: string }>("/tender-letters", input).then((r) => r.data),
+    update: (id: string, input: TenderLetterInput) =>
+      apiClient.patch(`/tender-letters/${id}`, input).then((r) => r.data),
+    remove: (id: string) => apiClient.delete(`/tender-letters/${id}`),
+  },
+}
+
 export interface CommunicationListParams {
   page?: number
   page_size?: number
@@ -254,4 +353,54 @@ export const platform = {
     create: (input: { email: string; name: string; password: string }) =>
       apiClient.post<User>("/admin/team", input).then((r) => r.data),
   },
+}
+
+export const workspace = {
+  get: () => apiClient.get<OrgProfile>("/tenant").then((r) => r.data),
+  updateProfile: (input: OrgProfileInput) =>
+    apiClient.patch<OrgProfile>("/tenant/profile", input).then((r) => r.data),
+  updateEmailSettings: (input: EmailSettingsInput) =>
+    apiClient.patch<OrgProfile>("/tenant/email", input).then((r) => r.data),
+  billing: () => apiClient.get<BillingType>("/billing").then((r) => r.data),
+}
+
+export const departments = {
+  list: () => apiClient.get<Department[]>("/departments").then((r) => r.data),
+  get: (id: string) => apiClient.get<Department>(`/departments/${id}`).then((r) => r.data),
+  create: (input: DepartmentInput) => apiClient.post<Department>("/departments", input).then((r) => r.data),
+  update: (id: string, input: DepartmentInput) =>
+    apiClient.patch<Department>(`/departments/${id}`, input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/departments/${id}`),
+  members: {
+    list: (departmentId: string) =>
+      apiClient.get<DepartmentMember[]>(`/departments/${departmentId}/members`).then((r) => r.data),
+    add: (departmentId: string, userId: string) =>
+      apiClient.post(`/departments/${departmentId}/members`, { user_id: userId }),
+    remove: (departmentId: string, userId: string) =>
+      apiClient.delete(`/departments/${departmentId}/members/${userId}`),
+  },
+}
+
+export const offices = {
+  list: () => apiClient.get<Office[]>("/offices").then((r) => r.data),
+  create: (input: OfficeInput) => apiClient.post<Office>("/offices", input).then((r) => r.data),
+  update: (id: string, input: OfficeInput) =>
+    apiClient.patch<Office>(`/offices/${id}`, input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/offices/${id}`),
+}
+
+export const referenceData = {
+  list: (category?: string) =>
+    apiClient
+      .get<ReferenceDataItem[]>("/reference-data", { params: category ? { category } : undefined })
+      .then((r) => r.data),
+  create: (input: ReferenceDataInput) =>
+    apiClient.post<ReferenceDataItem>("/reference-data", input).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/reference-data/${id}`),
+}
+
+export const archive = {
+  list: () => apiClient.get<ArchivedItem[]>("/archive").then((r) => r.data),
+  restore: (entity: string, id: string) => apiClient.post("/archive/restore", { entity, id }),
+  purge: (entity: string, id: string) => apiClient.post("/archive/purge", { entity, id }),
 }

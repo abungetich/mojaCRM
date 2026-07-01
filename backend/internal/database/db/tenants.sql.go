@@ -14,7 +14,7 @@ import (
 const createTenant = `-- name: CreateTenant :one
 INSERT INTO tenants (name, slug, plan)
 VALUES ($1, $2, $3)
-RETURNING id, name, slug, status, plan, created_at, updated_at
+RETURNING id, name, slug, status, plan, created_at, updated_at, country, legal_name, registration_no, kra_pin, phone, email, website, mail_sender_name, mail_reply_to, invoice_cc, invoice_bcc, billing_email
 `
 
 type CreateTenantParams struct {
@@ -34,12 +34,24 @@ func (q *Queries) CreateTenant(ctx context.Context, arg CreateTenantParams) (Ten
 		&i.Plan,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Country,
+		&i.LegalName,
+		&i.RegistrationNo,
+		&i.KraPin,
+		&i.Phone,
+		&i.Email,
+		&i.Website,
+		&i.MailSenderName,
+		&i.MailReplyTo,
+		&i.InvoiceCc,
+		&i.InvoiceBcc,
+		&i.BillingEmail,
 	)
 	return i, err
 }
 
 const getTenantByID = `-- name: GetTenantByID :one
-SELECT id, name, slug, status, plan, created_at, updated_at FROM tenants WHERE id = $1
+SELECT id, name, slug, status, plan, created_at, updated_at, country, legal_name, registration_no, kra_pin, phone, email, website, mail_sender_name, mail_reply_to, invoice_cc, invoice_bcc, billing_email FROM tenants WHERE id = $1
 `
 
 func (q *Queries) GetTenantByID(ctx context.Context, id uuid.UUID) (Tenant, error) {
@@ -53,12 +65,24 @@ func (q *Queries) GetTenantByID(ctx context.Context, id uuid.UUID) (Tenant, erro
 		&i.Plan,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Country,
+		&i.LegalName,
+		&i.RegistrationNo,
+		&i.KraPin,
+		&i.Phone,
+		&i.Email,
+		&i.Website,
+		&i.MailSenderName,
+		&i.MailReplyTo,
+		&i.InvoiceCc,
+		&i.InvoiceBcc,
+		&i.BillingEmail,
 	)
 	return i, err
 }
 
 const getTenantBySlug = `-- name: GetTenantBySlug :one
-SELECT id, name, slug, status, plan, created_at, updated_at FROM tenants WHERE slug = $1
+SELECT id, name, slug, status, plan, created_at, updated_at, country, legal_name, registration_no, kra_pin, phone, email, website, mail_sender_name, mail_reply_to, invoice_cc, invoice_bcc, billing_email FROM tenants WHERE slug = $1
 `
 
 func (q *Queries) GetTenantBySlug(ctx context.Context, slug string) (Tenant, error) {
@@ -72,12 +96,24 @@ func (q *Queries) GetTenantBySlug(ctx context.Context, slug string) (Tenant, err
 		&i.Plan,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Country,
+		&i.LegalName,
+		&i.RegistrationNo,
+		&i.KraPin,
+		&i.Phone,
+		&i.Email,
+		&i.Website,
+		&i.MailSenderName,
+		&i.MailReplyTo,
+		&i.InvoiceCc,
+		&i.InvoiceBcc,
+		&i.BillingEmail,
 	)
 	return i, err
 }
 
 const listTenants = `-- name: ListTenants :many
-SELECT id, name, slug, status, plan, created_at, updated_at FROM tenants ORDER BY created_at DESC
+SELECT id, name, slug, status, plan, created_at, updated_at, country, legal_name, registration_no, kra_pin, phone, email, website, mail_sender_name, mail_reply_to, invoice_cc, invoice_bcc, billing_email FROM tenants ORDER BY created_at DESC
 `
 
 func (q *Queries) ListTenants(ctx context.Context) ([]Tenant, error) {
@@ -97,6 +133,18 @@ func (q *Queries) ListTenants(ctx context.Context) ([]Tenant, error) {
 			&i.Plan,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Country,
+			&i.LegalName,
+			&i.RegistrationNo,
+			&i.KraPin,
+			&i.Phone,
+			&i.Email,
+			&i.Website,
+			&i.MailSenderName,
+			&i.MailReplyTo,
+			&i.InvoiceCc,
+			&i.InvoiceBcc,
+			&i.BillingEmail,
 		); err != nil {
 			return nil, err
 		}
@@ -110,7 +158,7 @@ func (q *Queries) ListTenants(ctx context.Context) ([]Tenant, error) {
 
 const setTenantStatus = `-- name: SetTenantStatus :one
 UPDATE tenants SET status = $2, updated_at = now() WHERE id = $1
-RETURNING id, name, slug, status, plan, created_at, updated_at
+RETURNING id, name, slug, status, plan, created_at, updated_at, country, legal_name, registration_no, kra_pin, phone, email, website, mail_sender_name, mail_reply_to, invoice_cc, invoice_bcc, billing_email
 `
 
 type SetTenantStatusParams struct {
@@ -129,6 +177,137 @@ func (q *Queries) SetTenantStatus(ctx context.Context, arg SetTenantStatusParams
 		&i.Plan,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Country,
+		&i.LegalName,
+		&i.RegistrationNo,
+		&i.KraPin,
+		&i.Phone,
+		&i.Email,
+		&i.Website,
+		&i.MailSenderName,
+		&i.MailReplyTo,
+		&i.InvoiceCc,
+		&i.InvoiceBcc,
+		&i.BillingEmail,
+	)
+	return i, err
+}
+
+const updateTenantEmailSettings = `-- name: UpdateTenantEmailSettings :one
+UPDATE tenants SET
+    mail_sender_name = $2,
+    mail_reply_to = $3,
+    invoice_cc = $4,
+    invoice_bcc = $5,
+    billing_email = $6,
+    updated_at = now()
+WHERE id = $1
+RETURNING id, name, slug, status, plan, created_at, updated_at, country, legal_name, registration_no, kra_pin, phone, email, website, mail_sender_name, mail_reply_to, invoice_cc, invoice_bcc, billing_email
+`
+
+type UpdateTenantEmailSettingsParams struct {
+	ID             uuid.UUID `json:"id"`
+	MailSenderName string    `json:"mail_sender_name"`
+	MailReplyTo    string    `json:"mail_reply_to"`
+	InvoiceCc      string    `json:"invoice_cc"`
+	InvoiceBcc     string    `json:"invoice_bcc"`
+	BillingEmail   string    `json:"billing_email"`
+}
+
+func (q *Queries) UpdateTenantEmailSettings(ctx context.Context, arg UpdateTenantEmailSettingsParams) (Tenant, error) {
+	row := q.db.QueryRow(ctx, updateTenantEmailSettings,
+		arg.ID,
+		arg.MailSenderName,
+		arg.MailReplyTo,
+		arg.InvoiceCc,
+		arg.InvoiceBcc,
+		arg.BillingEmail,
+	)
+	var i Tenant
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Slug,
+		&i.Status,
+		&i.Plan,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Country,
+		&i.LegalName,
+		&i.RegistrationNo,
+		&i.KraPin,
+		&i.Phone,
+		&i.Email,
+		&i.Website,
+		&i.MailSenderName,
+		&i.MailReplyTo,
+		&i.InvoiceCc,
+		&i.InvoiceBcc,
+		&i.BillingEmail,
+	)
+	return i, err
+}
+
+const updateTenantProfile = `-- name: UpdateTenantProfile :one
+UPDATE tenants SET
+    name = $2,
+    country = $3,
+    legal_name = $4,
+    registration_no = $5,
+    kra_pin = $6,
+    phone = $7,
+    email = $8,
+    website = $9,
+    updated_at = now()
+WHERE id = $1
+RETURNING id, name, slug, status, plan, created_at, updated_at, country, legal_name, registration_no, kra_pin, phone, email, website, mail_sender_name, mail_reply_to, invoice_cc, invoice_bcc, billing_email
+`
+
+type UpdateTenantProfileParams struct {
+	ID             uuid.UUID `json:"id"`
+	Name           string    `json:"name"`
+	Country        string    `json:"country"`
+	LegalName      string    `json:"legal_name"`
+	RegistrationNo string    `json:"registration_no"`
+	KraPin         string    `json:"kra_pin"`
+	Phone          string    `json:"phone"`
+	Email          string    `json:"email"`
+	Website        string    `json:"website"`
+}
+
+func (q *Queries) UpdateTenantProfile(ctx context.Context, arg UpdateTenantProfileParams) (Tenant, error) {
+	row := q.db.QueryRow(ctx, updateTenantProfile,
+		arg.ID,
+		arg.Name,
+		arg.Country,
+		arg.LegalName,
+		arg.RegistrationNo,
+		arg.KraPin,
+		arg.Phone,
+		arg.Email,
+		arg.Website,
+	)
+	var i Tenant
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Slug,
+		&i.Status,
+		&i.Plan,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Country,
+		&i.LegalName,
+		&i.RegistrationNo,
+		&i.KraPin,
+		&i.Phone,
+		&i.Email,
+		&i.Website,
+		&i.MailSenderName,
+		&i.MailReplyTo,
+		&i.InvoiceCc,
+		&i.InvoiceBcc,
+		&i.BillingEmail,
 	)
 	return i, err
 }

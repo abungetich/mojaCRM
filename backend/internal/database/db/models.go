@@ -38,6 +38,30 @@ type Client struct {
 	DeleteReason    string             `json:"delete_reason"`
 }
 
+type CompanyDocument struct {
+	ID              uuid.UUID   `json:"id"`
+	TenantID        uuid.UUID   `json:"tenant_id"`
+	Name            string      `json:"name"`
+	Category        string      `json:"category"`
+	DocNumber       string      `json:"doc_number"`
+	Issuer          string      `json:"issuer"`
+	Description     string      `json:"description"`
+	OwnerUserID     pgtype.UUID `json:"owner_user_id"`
+	OwnerName       string      `json:"owner_name"`
+	FileName        string      `json:"file_name"`
+	FileUrl         string      `json:"file_url"`
+	IssueDate       pgtype.Date `json:"issue_date"`
+	ExpiryDate      pgtype.Date `json:"expiry_date"`
+	RenewalLeadDays int32       `json:"renewal_lead_days"`
+	OnReport        bool        `json:"on_report"`
+	ReportMode      string      `json:"report_mode"`
+	VersionNo       int32       `json:"version_no"`
+	Active          bool        `json:"active"`
+	CreatedByName   string      `json:"created_by_name"`
+	CreatedAt       time.Time   `json:"created_at"`
+	UpdatedAt       time.Time   `json:"updated_at"`
+}
+
 type Contact struct {
 	ID                      uuid.UUID `json:"id"`
 	TenantID                uuid.UUID `json:"tenant_id"`
@@ -126,6 +150,58 @@ type CustomerNote struct {
 type CustomerTag struct {
 	CustomerID uuid.UUID `json:"customer_id"`
 	TagID      uuid.UUID `json:"tag_id"`
+}
+
+type Department struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	Name          string             `json:"name"`
+	Description   string             `json:"description"`
+	HeadUserID    pgtype.UUID        `json:"head_user_id"`
+	CreatedAt     time.Time          `json:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"`
+	CreatedByName string             `json:"created_by_name"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+	DeletedByName string             `json:"deleted_by_name"`
+	DeleteReason  string             `json:"delete_reason"`
+}
+
+type DepartmentMember struct {
+	TenantID     uuid.UUID `json:"tenant_id"`
+	DepartmentID uuid.UUID `json:"department_id"`
+	UserID       uuid.UUID `json:"user_id"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+type DocumentVersion struct {
+	ID            uuid.UUID   `json:"id"`
+	TenantID      uuid.UUID   `json:"tenant_id"`
+	DocumentID    uuid.UUID   `json:"document_id"`
+	VersionNo     int32       `json:"version_no"`
+	FileName      string      `json:"file_name"`
+	FileUrl       string      `json:"file_url"`
+	IssueDate     pgtype.Date `json:"issue_date"`
+	ExpiryDate    pgtype.Date `json:"expiry_date"`
+	CreatedByName string      `json:"created_by_name"`
+	ArchivedAt    time.Time   `json:"archived_at"`
+}
+
+type Office struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	Name          string             `json:"name"`
+	Code          string             `json:"code"`
+	IsMain        bool               `json:"is_main"`
+	Address       string             `json:"address"`
+	Town          string             `json:"town"`
+	Phone         string             `json:"phone"`
+	Email         string             `json:"email"`
+	CreatedAt     time.Time          `json:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"`
+	CreatedByName string             `json:"created_by_name"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+	DeletedByName string             `json:"deleted_by_name"`
+	DeleteReason  string             `json:"delete_reason"`
 }
 
 type Partner struct {
@@ -250,6 +326,18 @@ type PlatformSetting struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type ReferenceDatum struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	Category      string             `json:"category"`
+	Value         string             `json:"value"`
+	Label         string             `json:"label"`
+	SortOrder     int32              `json:"sort_order"`
+	CreatedByName string             `json:"created_by_name"`
+	CreatedAt     time.Time          `json:"created_at"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+}
+
 type Role struct {
 	ID          uuid.UUID `json:"id"`
 	TenantID    uuid.UUID `json:"tenant_id"`
@@ -272,13 +360,91 @@ type Tag struct {
 }
 
 type Tenant struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Slug      string    `json:"slug"`
-	Status    string    `json:"status"`
-	Plan      string    `json:"plan"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID             uuid.UUID `json:"id"`
+	Name           string    `json:"name"`
+	Slug           string    `json:"slug"`
+	Status         string    `json:"status"`
+	Plan           string    `json:"plan"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	Country        string    `json:"country"`
+	LegalName      string    `json:"legal_name"`
+	RegistrationNo string    `json:"registration_no"`
+	KraPin         string    `json:"kra_pin"`
+	Phone          string    `json:"phone"`
+	Email          string    `json:"email"`
+	Website        string    `json:"website"`
+	MailSenderName string    `json:"mail_sender_name"`
+	MailReplyTo    string    `json:"mail_reply_to"`
+	InvoiceCc      string    `json:"invoice_cc"`
+	InvoiceBcc     string    `json:"invoice_bcc"`
+	BillingEmail   string    `json:"billing_email"`
+}
+
+type Tender struct {
+	ID                 uuid.UUID          `json:"id"`
+	TenantID           uuid.UUID          `json:"tenant_id"`
+	Title              string             `json:"title"`
+	Reference          string             `json:"reference"`
+	Issuer             string             `json:"issuer"`
+	Type               string             `json:"type"`
+	Category           string             `json:"category"`
+	Description        string             `json:"description"`
+	Stage              string             `json:"stage"`
+	OutcomeNote        string             `json:"outcome_note"`
+	SubmissionDeadline string             `json:"submission_deadline"`
+	OpeningDatetime    string             `json:"opening_datetime"`
+	SubmittedOn        string             `json:"submitted_on"`
+	SubmissionMethod   string             `json:"submission_method"`
+	SubmissionAddress  string             `json:"submission_address"`
+	SubmissionEmail    string             `json:"submission_email"`
+	SubmissionContact  string             `json:"submission_contact"`
+	EstimatedValue     int64              `json:"estimated_value"`
+	DocFee             int64              `json:"doc_fee"`
+	Currency           string             `json:"currency"`
+	SecurityType       string             `json:"security_type"`
+	SecurityAmount     int64              `json:"security_amount"`
+	SecurityValidity   string             `json:"security_validity"`
+	OwnerUserID        pgtype.UUID        `json:"owner_user_id"`
+	Signed             bool               `json:"signed"`
+	Requirements       []byte             `json:"requirements"`
+	StageLog           []byte             `json:"stage_log"`
+	SubmissionLog      []byte             `json:"submission_log"`
+	ContactName        string             `json:"contact_name"`
+	ContactEmail       string             `json:"contact_email"`
+	Notes              string             `json:"notes"`
+	Reminded7dAt       pgtype.Timestamptz `json:"reminded_7d_at"`
+	Reminded1dAt       pgtype.Timestamptz `json:"reminded_1d_at"`
+	CreatedByName      string             `json:"created_by_name"`
+	CreatedAt          time.Time          `json:"created_at"`
+	UpdatedAt          time.Time          `json:"updated_at"`
+	DeletedAt          pgtype.Timestamptz `json:"deleted_at"`
+	DeletedByName      string             `json:"deleted_by_name"`
+	DeleteReason       string             `json:"delete_reason"`
+}
+
+type TenderDocument struct {
+	ID            uuid.UUID `json:"id"`
+	TenantID      uuid.UUID `json:"tenant_id"`
+	TenderID      uuid.UUID `json:"tender_id"`
+	Name          string    `json:"name"`
+	Label         string    `json:"label"`
+	Kind          string    `json:"kind"`
+	DataUrl       string    `json:"data_url"`
+	CreatedByName string    `json:"created_by_name"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+type TenderLetter struct {
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	Name            string             `json:"name"`
+	Kind            string             `json:"kind"`
+	TemplateContent string             `json:"template_content"`
+	IsDefault       bool               `json:"is_default"`
+	CreatedByName   string             `json:"created_by_name"`
+	CreatedAt       time.Time          `json:"created_at"`
+	DeletedAt       pgtype.Timestamptz `json:"deleted_at"`
 }
 
 type User struct {

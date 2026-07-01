@@ -22,6 +22,9 @@ import { ClientsListPage } from "@/pages/tenant/directory/clients-list"
 import { ClientDetailPage } from "@/pages/tenant/directory/client-detail"
 import { PartnersListPage } from "@/pages/tenant/directory/partners-list"
 import { PartnerDetailPage } from "@/pages/tenant/directory/partner-detail"
+import { DocumentsVaultPage } from "@/pages/tenant/documents-vault"
+import { TendersListPage } from "@/pages/tenant/tenders-list"
+import { TenderDetailPage } from "@/pages/tenant/tender-detail"
 
 export default function App() {
   return (
@@ -39,6 +42,9 @@ export default function App() {
         <Route path="/clients/:id" element={<ClientDetailPage />} />
         <Route path="/partners" element={<PartnersListPage />} />
         <Route path="/partners/:id" element={<PartnerDetailPage />} />
+        <Route path="/documents" element={<DocumentsVaultPage />} />
+        <Route path="/tenders" element={<TendersListPage />} />
+        <Route path="/tenders/:id" element={<TenderDetailPage />} />
         <Route path="/communications" element={<CommunicationsCenterPage />} />
         <Route path="/pipeline" element={<PipelinePage />} />
         <Route path="/tasks" element={<TasksPage />} />

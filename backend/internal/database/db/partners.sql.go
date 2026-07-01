@@ -302,6 +302,35 @@ func (q *Queries) ListPartners(ctx context.Context, arg ListPartnersParams) ([]P
 	return items, nil
 }
 
+const purgePartner = `-- name: PurgePartner :exec
+DELETE FROM partners WHERE id = $1 AND tenant_id = $2
+`
+
+type PurgePartnerParams struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+}
+
+func (q *Queries) PurgePartner(ctx context.Context, arg PurgePartnerParams) error {
+	_, err := q.db.Exec(ctx, purgePartner, arg.ID, arg.TenantID)
+	return err
+}
+
+const restorePartner = `-- name: RestorePartner :exec
+UPDATE partners SET deleted_at = NULL, deleted_by_name = '', delete_reason = ''
+WHERE id = $1 AND tenant_id = $2
+`
+
+type RestorePartnerParams struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+}
+
+func (q *Queries) RestorePartner(ctx context.Context, arg RestorePartnerParams) error {
+	_, err := q.db.Exec(ctx, restorePartner, arg.ID, arg.TenantID)
+	return err
+}
+
 const setPartnerComparableRules = `-- name: SetPartnerComparableRules :exec
 UPDATE partners SET
     comp_min_count = $3,

@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   Briefcase,
@@ -9,18 +10,31 @@ import {
   Mail,
   MapPin,
   Phone,
+  Ruler,
   Smartphone,
   Trash2,
   User,
 } from "lucide-react"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 import { PageLoader } from "@/components/ui/spinner"
 import {
   Tabs,
@@ -39,7 +53,156 @@ import { PartnerRequirementsTab } from "@/pages/tenant/directory/partner-require
 import { partners as partnersApi } from "@/lib/api"
 import { useAuth } from "@/lib/auth"
 import { partnerTypeLabel } from "@/lib/partner-options"
-import type { PartnerInput } from "@/types"
+import type { Partner, PartnerInput } from "@/types"
+
+const comparableRulesSchema = z.object({
+  comp_min_count: z.coerce.number().int().min(0),
+  comp_max_age_months: z.coerce.number().int().min(0),
+  comp_max_radius_km: z.coerce.number().int().min(0),
+  comp_max_variance_pct: z.coerce.number().int().min(0),
+  comp_actual_sales_only: z.boolean(),
+})
+type ComparableRulesValues = z.infer<typeof comparableRulesSchema>
+
+function ComparableRulesCard({ partner, canWrite }: { partner: Partner; canWrite: boolean }) {
+  const queryClient = useQueryClient()
+  const [editOpen, setEditOpen] = useState(false)
+  const form = useForm<ComparableRulesValues>({
+    resolver: zodResolver(comparableRulesSchema),
+    values: {
+      comp_min_count: partner.comp_min_count,
+      comp_max_age_months: partner.comp_max_age_months,
+      comp_max_radius_km: partner.comp_max_radius_km,
+      comp_max_variance_pct: partner.comp_max_variance_pct,
+      comp_actual_sales_only: partner.comp_actual_sales_only,
+    },
+  })
+
+  const mutation = useMutation({
+    mutationFn: (input: ComparableRulesValues) => partnersApi.setComparableRules(partner.id, input),
+    onSuccess: () => {
+      toast.success("Comparable rules updated")
+      queryClient.invalidateQueries({ queryKey: ["partners", partner.id] })
+      setEditOpen(false)
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+
+  return (
+    <Card>
+      <CardHeader className="flex-row items-center justify-between">
+        <CardTitle className="text-base">Comparable selection rules</CardTitle>
+        {canWrite && (
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            Edit
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent className="divide-border divide-y pt-0">
+        <InfoRow icon={Ruler} label="Minimum comparables" value={String(partner.comp_min_count)} />
+        <InfoRow icon={Ruler} label="Max age (months)" value={String(partner.comp_max_age_months)} />
+        <InfoRow icon={Ruler} label="Max radius (km)" value={String(partner.comp_max_radius_km)} />
+        <InfoRow icon={Ruler} label="Max variance (%)" value={String(partner.comp_max_variance_pct)} />
+        <InfoRow
+          icon={Ruler}
+          label="Actual sales only"
+          value={partner.comp_actual_sales_only ? "Yes" : "No"}
+        />
+      </CardContent>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="gap-0 overflow-hidden p-0">
+          <ModalHeader
+            icon={Ruler}
+            title="Comparable selection rules"
+            description="Applied when picking market evidence for this partner's jobs."
+          />
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+              className="space-y-4 p-4"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="comp_min_count"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum comparables</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="comp_max_age_months"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max age (months)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="comp_max_radius_km"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max radius (km)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0} step={1} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="comp_max_variance_pct"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max variance (%)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0} step={1} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="comp_actual_sales_only"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className="font-normal">Only use actual sales (not asking prices)</FormLabel>
+                  </FormItem>
+                )}
+              />
+              <DialogFooter className="p-0 pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={mutation.isPending}>
+                  Save
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  )
+}
 
 function InfoRow({
   icon: Icon,
@@ -214,6 +377,9 @@ export function PartnerDetailPage() {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="comparable-rules" className="shrink-0">
+            <Ruler /> Comparable rules
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -252,6 +418,10 @@ export function PartnerDetailPage() {
         <TabsContent value="requirements" className="space-y-6">
           <PartnerRequirementsTab partnerId={partner.id} />
           <PartnerAppendixTemplatesTab partnerId={partner.id} />
+        </TabsContent>
+
+        <TabsContent value="comparable-rules">
+          <ComparableRulesCard partner={partner} canWrite={canWrite} />
         </TabsContent>
       </Tabs>
 
