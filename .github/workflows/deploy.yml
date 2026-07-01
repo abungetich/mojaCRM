@@ -1,0 +1,32 @@
+name: Build and deploy
+
+# Runs on our own self-hosted runner (registered on the app VPS itself,
+# see deploy/DEPLOY.md), not GitHub-hosted runners — the whole point is to
+# build and deploy directly on the box that serves app.mojacrm.com.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: [self-hosted, mojacrm]
+    steps:
+      - uses: actions/checkout@v4
+
+      # Docker isn't installed inside a sandbox here — Go/Node aren't
+      # installed on the runner host either, and don't need to be: the
+      # production Dockerfile's multi-stage build already runs the real
+      # `go build`/`go vet` and `npm run build` (tsc -b + vite build) as
+      # part of producing the image. If either fails, this step fails the
+      # job before anything is deployed — same gate as building manually.
+      - name: Build images
+        run: docker compose -f deploy/docker-compose.contabo.yml build
+
+      - name: Deploy
+        run: docker compose -f deploy/docker-compose.contabo.yml up -d
+
+      - name: Health check
+        run: |
+          sleep 5
+          curl -sf http://127.0.0.1:3102/healthz

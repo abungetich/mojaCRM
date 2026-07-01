@@ -108,11 +108,51 @@ chmod +x /etc/cron.daily/mojacrm-db-backup
 
 ## 6. Redeploying after code changes
 
+**Automatic (CI):** every push to `main` builds and deploys automatically via
+a self-hosted GitHub Actions runner registered directly on this VPS — see
+`.github/workflows/deploy.yml` and step 7 below. Push to `main`, then watch
+it run at https://github.com/abungetich/mojaCRM/actions.
+
+**Manual fallback:**
 ```bash
+ssh amac-server
 cd /opt/mojacrm
-git pull                                              # or your push-to-deploy hook
+git pull
 docker compose -f deploy/docker-compose.contabo.yml up -d --build
 ```
 
 Migrations run automatically on API startup (see
 `internal/database/migrate.go`) — no separate migrate step needed.
+
+## 7. Self-hosted CI runner
+
+We use a **self-hosted GitHub Actions runner**, not GitHub-hosted runners —
+it runs directly on the app VPS so builds/deploys happen on the same box
+that serves traffic, with no SSH keys or secrets needed in GitHub.
+
+**Setup (already done for this repo, documented for reference / re-setup):**
+```bash
+ssh amac-server
+mkdir -p /opt/actions-runner-mojacrm && cd /opt/actions-runner-mojacrm
+curl -o runner.tar.gz -L https://github.com/actions/runner/releases/download/v2.335.1/actions-runner-linux-x64-2.335.1.tar.gz
+tar xzf runner.tar.gz && rm runner.tar.gz
+
+# Registration token: gh api -X POST repos/abungetich/mojaCRM/actions/runners/registration-token --jq '.token'
+RUNNER_ALLOW_RUNASROOT=1 ./config.sh --url https://github.com/abungetich/mojaCRM \
+  --token <TOKEN> --name mojacrm-vps --labels mojacrm --work _work --unattended
+
+RUNNER_ALLOW_RUNASROOT=1 ./svc.sh install root
+./svc.sh start
+```
+
+Runs as `root` (same pattern as the other apps' runners already on this box)
+so it has Docker access without extra group setup. The workflow
+(`.github/workflows/deploy.yml`) targets `runs-on: [self-hosted, mojacrm]` —
+that label is what routes jobs to this specific runner instead of any other
+self-hosted runner on the same VPS (each app here has its own).
+
+Go/Node aren't installed on the host, and don't need to be — the CI job just
+runs `docker compose build`, which uses `Dockerfile.prod`'s multi-stage build
+to do the real `go build`/`go vet` and `npm run build` (`tsc -b && vite build`)
+inside the build container. If either fails, the job fails before anything
+deploys — same gate as building manually, just automatic on every push.
