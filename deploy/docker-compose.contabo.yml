@@ -1,0 +1,87 @@
+# Production compose for the APP VPS (the existing Contabo box already
+# running the shared `amac-caddy` reverse proxy + waterboy/PropSense).
+#
+# Postgres is NOT here — it runs on a separate VPS. This box only has the
+# API, the Asynq worker, and Redis (Redis stays local: low-latency job
+# queue + auth-cookie-adjacent caching, no reason to split it out).
+#
+# Secrets come from /etc/mojacrm/.env.production (chmod 600), following the
+# same pattern as /etc/propsense/.env.production.
+#
+# Deploy from the repo root (this file's build context is `..`):
+#   docker compose -f deploy/docker-compose.contabo.yml up -d --build
+#
+# `name:` is pinned so container names are predictable regardless of which
+# directory this is invoked from (Caddy's reverse_proxy targets them by name).
+
+name: mojacrm
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - mojacrm_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile.prod
+      args:
+        BIN: api
+    restart: unless-stopped
+    env_file:
+      - /etc/mojacrm/.env.production
+    environment:
+      REDIS_ADDR: redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3102:8080" # localhost-only, for health checks during deploy
+    networks:
+      - default
+      - caddy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile.prod
+      args:
+        BIN: worker
+    restart: unless-stopped
+    env_file:
+      - /etc/mojacrm/.env.production
+    environment:
+      REDIS_ADDR: redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+
+  # One-shot: `docker compose -f deploy/docker-compose.contabo.yml --profile seed run --rm seed`
+  seed:
+    build:
+      context: ..
+      dockerfile: Dockerfile.prod
+      args:
+        BIN: seed
+    env_file:
+      - /etc/mojacrm/.env.production
+    profiles:
+      - seed
+
+networks:
+  default:
+  caddy:
+    external: true
+    name: amacplc_amac-net
+
+volumes:
+  mojacrm_redis_data:

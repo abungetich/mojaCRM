@@ -1,0 +1,30 @@
+# Append this block to the shared Caddyfile at /opt/amacplc/Caddyfile on the
+# app VPS (the same box already running PropSense's amac-caddy).
+#
+# The Caddyfile is bind-mounted as a single file into the amac-caddy
+# container — edit with an append / in-place write (NOT `sed -i`, which
+# swaps the inode and leaves the running container looking at the stale
+# file). After editing, reload:
+#   docker exec amac-caddy caddy reload --config /etc/caddy/Caddyfile
+#
+# amac-caddy reaches apps by CONTAINER NAME on the shared docker network
+# `amacplc_amac-net` (not 127.0.0.1 — inside the container that's caddy
+# itself). mojacrm's `api` service joins that network via
+# deploy/docker-compose.contabo.yml.
+#
+# Same split as PropSense: the product lives on its own subdomain, the
+# apex + www are reserved for a marketing site.
+
+# --- The app ---
+app.mojacrm.com {
+    encode zstd gzip
+    reverse_proxy mojacrm-api-1:8080
+}
+
+# --- Apex + www: no marketing site built yet, so redirect to the app for
+# now. Once a marketing site exists, replace this block with a
+# `reverse_proxy <marketing-container>:<port>` like PropSense's. ---
+mojacrm.com, www.mojacrm.com {
+    encode zstd gzip
+    redir https://app.mojacrm.com{uri} permanent
+}

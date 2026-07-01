@@ -2,6 +2,8 @@ package server
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -118,5 +120,23 @@ func New(cfg config.Config, store *database.Store, jobsClient *asynq.Client) htt
 		})
 	})
 
+	if cfg.StaticDir != "" {
+		r.Get("/*", spaHandler(cfg.StaticDir))
+	}
+
 	return r
+}
+
+// spaHandler serves the built frontend: real files (JS/CSS/images) as-is,
+// and index.html for anything else so client-side routing works on refresh.
+func spaHandler(dir string) http.HandlerFunc {
+	fileServer := http.FileServer(http.Dir(dir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		full := filepath.Join(dir, filepath.Clean(r.URL.Path))
+		if info, err := os.Stat(full); err == nil && !info.IsDir() {
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+		http.ServeFile(w, r, filepath.Join(dir, "index.html"))
+	}
 }

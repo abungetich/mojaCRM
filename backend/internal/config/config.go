@@ -13,6 +13,11 @@ type Config struct {
 	CookieSecure bool
 	AllowOrigin  string
 	SentryDSN    string
+	// StaticDir, if set, makes the API also serve the built frontend (SPA)
+	// from this directory — used in production so one container/process
+	// serves both the API and the app. Left empty for local dev, where
+	// Vite's own dev server handles the frontend instead.
+	StaticDir string
 }
 
 func Load() Config {
@@ -25,6 +30,7 @@ func Load() Config {
 		CookieSecure: getenv("COOKIE_SECURE", "false") == "true",
 		AllowOrigin:  getenv("ALLOW_ORIGIN", "http://localhost:5173"),
 		SentryDSN:    getenv("SENTRY_DSN", ""),
+		StaticDir:    getenv("STATIC_DIR", ""),
 	}
 }
 
