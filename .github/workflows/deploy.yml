@@ -68,6 +68,9 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: [self-hosted, mojacrm]
     steps:
+      - name: Mark deploy start
+        run: echo "DEPLOY_START=$(date +%s)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
 
       # Re-runs the same go build/vet + npm run build inside Dockerfile.prod's
@@ -83,3 +86,22 @@ jobs:
         run: |
           sleep 5
           curl -sf http://127.0.0.1:3102/healthz
+
+      # One line to the shared cross-app deploy ledger the koiva-crm admin
+      # Deployments page reads. Best-effort — never fails the deploy.
+      - name: Record to the shared cross-app deploy ledger
+        if: always()
+        continue-on-error: true
+        run: |
+          LEDGER=/opt/deploys/deploys.jsonl
+          mkdir -p /opt/deploys 2>/dev/null || sudo mkdir -p /opt/deploys
+          NOW=$(date +%s)
+          START=${DEPLOY_START:-$NOW}
+          printf '{"app":"mojacrm","sha":"%s","branch":"%s","actor":"%s","startedAt":"%s","finishedAt":"%s","durationS":%s,"status":"%s","url":"%s","source":"actions"}\n' \
+            "$GITHUB_SHA" "$GITHUB_REF_NAME" "$GITHUB_ACTOR" \
+            "$(date -u -d "@$START" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || true)" \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(( NOW - START ))" \
+            "${{ job.status }}" \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            >> "$LEDGER"
+          chmod 644 "$LEDGER" 2>/dev/null || true
