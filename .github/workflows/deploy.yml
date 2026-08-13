@@ -41,6 +41,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
+          # go.sum lives in backend/, not the repo root — without this,
+          # setup-go can't key the module cache and re-downloads deps every run.
+          cache-dependency-path: backend/go.sum
       - run: go build ./...
       - run: go vet ./...
       - run: go test ./...
